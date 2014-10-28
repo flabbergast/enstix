@@ -68,15 +68,9 @@ All instructions are to be executed in a terminal window.
         git clone https://github.com/flabbergast/enstix.git
         cd enstix
 
-2. Get the libraries:
-
-    - [LUFA] library: Download sources from its website (I used the
-      140928 release), unpack and move the `LUFA` folder (it's inside
-      the main unpacked dir) into the `enstix` folder.
-    - [AVR-crypto-lib] library: This one's integrated as a submodule.
-
-                git submodule init
-                git submodule update crypto/avr-crypto-lib
+2. Get the [LUFA] library: Download sources from its website (I used the
+   140928 release), unpack and copy the `LUFA` folder (it's inside
+   the main unpacked dir) into the `enstix` folder.
 
 3. Create a "random" 64kB disk image (that will serve as the encrypted
    disk): `image.bin`. NB: all the python scripts in the
@@ -115,14 +109,16 @@ All instructions are to be executed in a terminal window.
         cp FIRMWARE.BIN /wherever/the/stick/is/mounted/FIRMWARE.BIN
         cp EEPROM.BIN /wherever/the/stick/is/mounted/EEPROM.BIN
 
+9. Reset or reinsert the AVR stick and enjoy.
+
 Note: if you just want to update the firmware, and are happy with the
 current password and the disk image currently burned on the xmega's
-FLASH, it's enought to run `make` to compile the firmware, and copy the
+FLASH, it's enough to run `make` to compile the firmware, and copy the
 resulting `enstix.bin` to `FIRMWARE.BIN` file onto the AVR stick in
 bootloader mode. Note that it doesn't matter what passwords
-`eeprom_contents.c` file contains (can be even empty), as long
-as you don't update the EEPROM contents on the AVR stick (i.e. you don't
-write to EEPROM.BIN file on the AVR stick in bootloader mode).
+`eeprom_contents.c` file contains, as long as you don't update the
+EEPROM contents on the AVR stick (i.e. you don't write to `EEPROM.BIN`
+file on the AVR stick in bootloader mode).
 
 ## Encryption details
 
