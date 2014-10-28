@@ -49,7 +49,7 @@ print("Passphrases match, continuing...")
 pp_hash = SHA256.new(passphrase)
 print("SHA256 hash of the passphrase: "+pp_hash.hexdigest())
 pp_hash_hash = SHA256.new(pp_hash.digest())
-print("SHA256 hash of the hash of the passphrase (saved, used to check if the passphrase is correct: "+pp_hash_hash.hexdigest())
+print("SHA256 hash of the hash of the passphrase (saved to EEPROM, used to check if the passphrase is correct: "+pp_hash_hash.hexdigest())
 
 # Use SHA256 hash of passphrase a key for AES256 used for encrypting the actual key
 aes_hashkey = AES.new(pp_hash.digest(), AES.MODE_ECB) # only used to encr/decr 1 block, so ECB is appropriate
@@ -61,7 +61,7 @@ else:
     aes128_key_encr = aes_hashkey.encrypt(aes128_key)
 
 print("AES128 key (the main key; random): "+binascii.hexlify(aes128_key))
-print("The main key encrypted with AES256; the key is the passphrase hash (saved): "+binascii.hexlify(aes128_key_encr))
+print("The main key encrypted with AES256; the key is the passphrase hash (saved to EEPROM): "+binascii.hexlify(aes128_key_encr))
 
 # encrypt in chunks, to get "sector number"
 sect_num = 0
@@ -70,8 +70,6 @@ if args.decrypt:
 else:
     print("Encrypting image '"+args.input_imgfile+"' to '"+args.output_imgfile+"' now:")
 aes_iv = AES.new(SHA256.new(aes128_key).digest()[0:16], AES.MODE_ECB) # iv = ESSIV: encrypt sect_num with AES(key=hash_of_main_key)
-print("HASH(KEY): "+SHA256.new(aes128_key).hexdigest())
-print("IV(0): "+binascii.hexlify(aes_iv.encrypt(struct.pack('l', 0).ljust(16, '\x00'))))
 outimage = open(args.output_imgfile, "wb")
 with open(args.input_imgfile, "rb") as f:
     while True:
