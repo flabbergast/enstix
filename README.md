@@ -15,11 +15,13 @@ The current functionality is as follows:
    FAT12-formatted 64kB USB drive, again read-only. This one can be made
    writable by again connecting via Serial and issuing the proper
    command.
+ - At this point, the storage works as a normal (64kB "big")
+   SCSI disk - you can repartition and reformat to your liking. Its
+   contents are stored on the AVR stick, encrypted with AES.
  - The Keyboard is not doing anything at the moment.
 
-The point is that the image of the second (potentially writable) USB
-drive is in fact stored encrypted directly in the flash of the
-atxmega128a3, so the whole setup acts as an encrypted USB drive.
+So the whole shebang is about making the AVR stick into an encrypted USB
+storage.
 
 To use the Serial on Windows machines, an `.inf` file is provided (not
 tested). Note that it doesn't install any driver, it just lets Windows
@@ -59,9 +61,14 @@ page](http://www.fourwalledcubicle.com/files/LUFA/Doc/120730/html/_page__v_i_d_p
 
 ### Prerequisites
 
-I'm assuming you have Stephan's AVRstick, and a PC (preferably running
-linux or Mac OS X) with a working avr-gcc installation, git and python.
-All instructions are to be executed in a terminal window.
+I'm assuming you have Stephan's [AVRstick] {you can buy it on
+[Tindie](https://www.tindie.com/products/matrixstorm/avr-stick-prototype/)},
+and a PC (preferably running linux or Mac OS X) with a working
+[avr-gcc](http://www.nongnu.org/avr-libc/) installation,
+[git](http://git-scm.com/) and [python](https://www.python.org/) 2.7
+(with the [pycrypto](https://www.dlitz.net/software/pycrypto/) package
+installed). {Haven't tried python 3 yet.} All instructions are to be
+executed in a terminal window.
 
 1. Get the sources:
 
@@ -73,8 +80,9 @@ All instructions are to be executed in a terminal window.
    the main unpacked dir) into the `enstix` folder.
 
 3. Create a "random" 64kB disk image (that will serve as the encrypted
-   disk): `image.bin`. NB: all the python scripts in the
-   `enstix/scripts` directory accepts `-h` or `--help` as parameters, which
+   disk): `image.bin`. NB1: The first 5 sectors (2560 bytes) are the
+   same on every image. NB2: all the python scripts in the `enstix/scripts`
+   directory accepts `-h` or `--help` as parameters, which
    will then give you a list of options and a short explanation.
 
         ./scripts/create-random-64k-image.py
