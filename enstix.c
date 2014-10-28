@@ -158,6 +158,8 @@ int main(void)
             // compute hashes
             sha256((sha256_hash_t *)pp_hash, (const void*)passphrase, 8*strlen(passphrase));
             sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
+            // wipe the passphrase from memory
+            memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN);
             // compare the hash of hash of the passphrase with the eeprom
             bool match = true;
             for(uint8_t i=0; i<32; i++) {
