@@ -23,6 +23,7 @@
 /*  Encryption related: used both in main() and disk read/write callbacks. */
 #define PASSPHRASE_MAX_LEN 100
 char passphrase[PASSPHRASE_MAX_LEN];
+char temp_buf[PASSPHRASE_MAX_LEN];
 uint8_t pp_hash[32];
 uint8_t pp_hash_hash[32];
 uint8_t key[16];
@@ -86,7 +87,7 @@ int main(void)
     /* Handling of the serial dialogue */
     if( usb_serial_available() > 0 ) {
       switch(usb_serial_getchar()) {
-        case 'i':
+        case 'i': // info
           usb_serial_writeln_P(FIRMWARE_VERSION);
           if(disk_state == DISK_STATE_INITIAL) {
             usb_serial_write_P(PSTR("Encrypted main AES key: "));
@@ -106,7 +107,43 @@ int main(void)
             }
           }
           break;
-        case 'r':
+        case 'c': // change the password
+          if(disk_state == DISK_STATE_ENCRYPTING) {
+            usb_serial_writeln_P(PSTR("Enter current passphrase:"));
+            usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
+            // compute hashes
+            sha256((sha256_hash_t *)temp_buf, (const void*)passphrase, 8*strlen(passphrase));
+            sha256((sha256_hash_t *)passphrase, (const void*)temp_buf, 8*32); // re-use the space allocated for the passphrase buffer
+            int compare = memcmp((const void *)passphrase, (const void *)pp_hash_hash, 32);
+            memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
+            if(compare == 0) {
+              usb_serial_writeln_P(PSTR("Enter a new passphrase:"));
+              usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
+              usb_serial_writeln_P(PSTR("Enter the new passphrase again:"));
+              usb_serial_readline(temp_buf, PASSPHRASE_MAX_LEN, true);
+              compare = strcmp(passphrase, temp_buf);
+              memset(temp_buf, 0xFF, PASSPHRASE_MAX_LEN);
+              if(compare == 0) {
+                usb_serial_writeln_P(PSTR("Match. Changing the passphrase."));
+                sha256((sha256_hash_t *)pp_hash, (const void*)passphrase, 8*strlen(passphrase));
+                memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
+                sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
+                memcpy(temp_buf, key, 16); // copy the key to a temp buffer for encrypting
+                aes256_enc_single(pp_hash, temp_buf); // decrypt the aes key
+                // save the new pp_hash_hash and encr.aes.key to EEPROM
+                eeprom_write_block((const void*)temp_buf, (void*)aes_key_encrypted, 16);
+                eeprom_write_block((const void*)pp_hash_hash, (void*)passphrase_hash_hash, 32);
+              } else {
+                usb_serial_writeln_P(PSTR("The passphrases don't match. Not changing anything."));
+              }
+            } else {
+              usb_serial_writeln_P(PSTR("Entered passphrase is not correct."));
+            }
+          } else {
+            usb_serial_writeln_P(PSTR("Passphrase changing works only in encrypted mode."));
+          }
+          break;
+        case 'r': // switch ro/rw
           if(disk_state == DISK_STATE_ENCRYPTING) {
             usb_serial_write_P(PSTR("Disk state: "));
             if(disk_read_only) {
@@ -150,9 +187,8 @@ int main(void)
             usb_serial_writeln_P(PSTR("This only works in encrypted mode."));
           }
           break;
-        case 'p':
+        case 'p': // enter password
           if(disk_state == DISK_STATE_INITIAL) {
-            // TODO: we should ask for a password here -> into 'passphrase'
             usb_serial_writeln_P(PSTR("Enter passphrase:"));
             usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
             // compute hashes
@@ -191,7 +227,7 @@ int main(void)
           }
           break;
         default:
-          usb_serial_writeln_P(PSTR("-> Help: [i]nfo, [r]o/rw, [p]assphrase"));
+          usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
       }
     }
 
@@ -254,8 +290,8 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
 void compute_iv_for_sector(uint32_t sectorNumber) {
   /* compute iv for the sector */
   // prepare for encrypting sector number (endianness matters!)
-  memset((void *)iv, 0, 16);
-  memcpy((void *)iv, (const void*)&sectorNumber, sizeof(uint32_t));
+  memset(iv, 0, 16);
+  memcpy(iv, (const void*)&sectorNumber, sizeof(uint32_t));
   // encrypt the sn with aes128, the key being the hash of the main key
   aes128_enc_single(key_hash, iv);
 }

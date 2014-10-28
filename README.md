@@ -169,7 +169,6 @@ the list of functions that it provides.
 
 ## Roadmap / TODO
 
-- Implement passphrase changing from within the serial interface.
 - Use xmega's hardware AES128 instead of a software implementation.
 - Figure out and implement another way of entering the passphrase that
   wouldn't require Serial access.
