@@ -1,0 +1,3 @@
+[submodule "crypto/avr-crypto-lib"]
+	path = crypto/avr-crypto-lib
+	url = https://git.cryptolib.org/avr-crypto-lib.git
