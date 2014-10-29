@@ -133,13 +133,21 @@ file on the AVR stick in bootloader mode).
 The encrypted disk image is encrypted with aes128-cbc-essiv (probably
 not directly compatible with other existing programs using this scheme).
 What is stored in xmega's EEPROM is the main AES128 key encrypted with
-AES256 (the key for this is the SHA256 hash of the passphrase).
+AES128 (the key for this is the SHA256 hash of the passphrase).
 Another piece of data stored in EEPROM is the SHA256 hash of the SHA256
 hash of the passphrase (for verifying if the entered passphrase is
 "correct").
 
 I would be grateful if you can let me know if there are some security
 holes in this scheme.
+
+## Upgrading firmware / changelog
+
+### Upgrading from older than 1.2
+
+The upgrade to 1.2 breaks previously used disk images, as it changes the
+way the main key is encrypted (and stored in EEPROM). No special upgrade
+instructions are provided (ask me if you need them).
 
 ## Remarks
 

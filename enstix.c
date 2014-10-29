@@ -58,6 +58,7 @@ int main(void)
   bool button_press_registered = false;
   uint32_t button_press_length = 0;
 
+
   /* Initialisation */
   init();
 
@@ -132,7 +133,7 @@ int main(void)
                 memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
                 sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
                 memcpy(temp_buf, key, 16); // copy the key to a temp buffer for encrypting
-                aes256_enc_single(pp_hash, temp_buf); // encrypt the aes key
+                aes128_enc_single(pp_hash, temp_buf); // encrypt the aes key
                 // save the new pp_hash_hash and encr.aes.key to EEPROM
                 eeprom_write_block((const void*)temp_buf, (void*)aes_key_encrypted, 16);
                 eeprom_write_block((const void*)pp_hash_hash, (void*)passphrase_hash_hash, 32);
@@ -208,10 +209,13 @@ int main(void)
               }
             }
             if(match) { // if the passphrase is correct
-              aes256_dec_single(pp_hash, key); // decrypt the aes key
               #if (defined(__AVR_ATxmega128A3U__))
                 // hardware AES decryption needs another key
+                AES_lastsubkey_generate(pp_hash, lastsubkey);
+                aes128_dec_single(lastsubkey, key); // decrypt the aes key
                 AES_lastsubkey_generate(key, lastsubkey);
+              #else
+                aes128_dec_single(pp_hash, key); // decrypt the aes key
               #endif
               sha256((sha256_hash_t *)key_hash, (const void*)key, 8*16); // remember the hash as well, for ESSIV
               usb_serial_writeln_P(PSTR("Password OK. Switching to encrypted disk mode (everything will disconnect)."));

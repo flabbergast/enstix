@@ -27,14 +27,6 @@ bool aes128_enc_single(const uint8_t* key, void* data);
 // key is assumed to be 128bit thus 16 uint8_t's
 bool aes128_dec_single(const uint8_t* key, void* data);
 
-// encrypt single 128bit block. data is assumed to be 16 uint8_t's
-// key is assumed to be 256bit thus 32 uint8_t's
-void aes256_enc_single(const uint8_t* key, void* data);
-
-// decrypt single 128bit block. data is assumed to be 16 uint8_t's
-// key is assumed to be 256bit thus 32 uint8_t's
-void aes256_dec_single(const uint8_t* key, void* data);
-
 #if (defined(__AVR_ATxmega128A3U__))
 // hardware AES module needs a different key for decryption
 // this function computes it from the main key

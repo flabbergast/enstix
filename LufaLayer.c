@@ -310,6 +310,11 @@ void SetupHardware(void)
   Buttons_Init();
   USB_Init();
   Timer_Init();
+
+  // AES module soft reset: put the module into a known state
+  #if (defined(__AVR_ATxmega128A3U__))
+    AES.CTRL = AES_RESET_bm;
+  #endif
 }
 
 /*

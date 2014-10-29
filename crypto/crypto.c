@@ -212,21 +212,3 @@ uint16_t aes128_cbc_dec(const uint8_t* key, const uint8_t* iv, void *data, const
   return(counter);
 }
 
-/* Software AES256 */
-
-// encrypt single 128bit block. data is assumed to be 16 uint8_t's
-// key is assumed to be 256bit thus 32 uint8_t's
-void aes256_enc_single(const uint8_t* key, void* data){
-  aes256_ctx_t ctx;
-  aes256_init(key, &ctx);
-  aes256_enc(data, &ctx);
-}
-
-// decrypt single 128bit block. data is assumed to be 16 uint8_t's
-// key is assumed to be 256bit thus 32 uint8_t's
-void aes256_dec_single(const uint8_t* key, void* data){
-  aes256_ctx_t ctx;
-  aes256_init(key, &ctx);
-  aes256_dec(data, &ctx);
-}
-

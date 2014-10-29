@@ -51,8 +51,9 @@ print("SHA256 hash of the passphrase: "+pp_hash.hexdigest())
 pp_hash_hash = SHA256.new(pp_hash.digest())
 print("SHA256 hash of the hash of the passphrase (saved to EEPROM, used to check if the passphrase is correct: "+pp_hash_hash.hexdigest())
 
-# Use SHA256 hash of passphrase a key for AES256 used for encrypting the actual key
-aes_hashkey = AES.new(pp_hash.digest(), AES.MODE_ECB) # only used to encr/decr 1 block, so ECB is appropriate
+# Use 1st 16 bytes of SHA256 hash of passphrase a key for AES128 used for encrypting the actual key
+aes_hashkey = AES.new(pp_hash.digest()[0:16], AES.MODE_ECB) # only used to encr/decr 1 block, so ECB is appropriate
+                                                            # also cut the length of the key to 16 bytes, so that AES128 is used
 
 if len(aes128_key_encr) > 0:
     aes128_key = aes_hashkey.decrypt(aes128_key_encr)
@@ -61,7 +62,7 @@ else:
     aes128_key_encr = aes_hashkey.encrypt(aes128_key)
 
 print("AES128 key (the main key; random): "+binascii.hexlify(aes128_key))
-print("The main key encrypted with AES256; the key is the passphrase hash (saved to EEPROM): "+binascii.hexlify(aes128_key_encr))
+print("The main key encrypted with AES128; the key is the passphrase hash (saved to EEPROM): "+binascii.hexlify(aes128_key_encr))
 
 # encrypt in chunks, to get "sector number"
 sect_num = 0
