@@ -27,6 +27,9 @@ char temp_buf[PASSPHRASE_MAX_LEN];
 uint8_t pp_hash[32];
 uint8_t pp_hash_hash[32];
 uint8_t key[16];
+#if (defined(__AVR_ATxmega128A3U__))
+uint8_t lastsubkey[16]; // hardware AES module needs a different key for decryption
+#endif
 uint8_t key_hash[32];
 uint8_t iv[16];
 
@@ -129,7 +132,7 @@ int main(void)
                 memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
                 sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
                 memcpy(temp_buf, key, 16); // copy the key to a temp buffer for encrypting
-                aes256_enc_single(pp_hash, temp_buf); // decrypt the aes key
+                aes256_enc_single(pp_hash, temp_buf); // encrypt the aes key
                 // save the new pp_hash_hash and encr.aes.key to EEPROM
                 eeprom_write_block((const void*)temp_buf, (void*)aes_key_encrypted, 16);
                 eeprom_write_block((const void*)pp_hash_hash, (void*)passphrase_hash_hash, 32);
@@ -206,6 +209,10 @@ int main(void)
             }
             if(match) { // if the passphrase is correct
               aes256_dec_single(pp_hash, key); // decrypt the aes key
+              #if (defined(__AVR_ATxmega128A3U__))
+                // hardware AES decryption needs another key
+                AES_lastsubkey_generate(key, lastsubkey);
+              #endif
               sha256((sha256_hash_t *)key_hash, (const void*)key, 8*16); // remember the hash as well, for ESSIV
               usb_serial_writeln_P(PSTR("Password OK. Switching to encrypted disk mode (everything will disconnect)."));
               usb_serial_write_P(PSTR("Press a key to continue..."));
@@ -259,7 +266,12 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   //flash_readpage(out_sectordata, DISK_AREA_BEGIN_PAGE+sectorNumber);
 
   /* decrypt */
-  aes128_cbc_dec(key, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  #if (defined(__AVR_ATxmega128A3U__))
+    // hardware AES module needs a different key for decryption
+    aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  #else
+    aes128_cbc_dec(key, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  #endif
 
   return VIRTUAL_DISK_BLOCK_SIZE;
 }
