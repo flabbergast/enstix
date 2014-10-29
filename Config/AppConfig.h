@@ -43,7 +43,7 @@
    #define FORMATTED_DATE __DATE__
    #endif
 
-  #define FIRMWARE_VERSION          PSTR(" * enstix v1.1 (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
+  #define FIRMWARE_VERSION          PSTR(" * enstix v1.2 (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
 
   #define TOTAL_LUNS                1
 
