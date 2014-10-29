@@ -16,9 +16,10 @@
 
 #if (defined(__AVR_ATxmega128A3U__)) // use hardware AES accelerator on the xmega for AES128
 
-// Decrypt a single 128bit block. Both data, key are 16 uint8_t.
-bool aes128_enc_single(const uint8_t* key, void* data){
-  bool encrypt_ok;
+// Encrypt or decrypt a single 128bit block. data and key are assumed
+//  to be 16 uint8_t's. The mode is directly used to set AES.CTRL register.
+bool aes128_do_single(const uint8_t* key, void* data, uint8_t mode) {
+  bool ok;
   uint8_t i;
 
   /* Load key into AES key memory. */
@@ -31,8 +32,8 @@ bool aes128_enc_single(const uint8_t* key, void* data){
     AES.STATE = *((uint8_t *)data +i);
   }
 
-  // Set AES in encryption mode and start AES.
-  AES.CTRL = (AES.CTRL & (~AES_DECRYPT_bm)) | AES_START_bm;
+  // Set AES mode (assumed to start AES, ie set the START bit!)
+  AES.CTRL = mode;
 
   do{ // Wait until AES is finished or an error occurs.
   } while((AES.STATUS & (AES_SRIF_bm|AES_ERROR_bm) ) == 0);
@@ -43,44 +44,22 @@ bool aes128_enc_single(const uint8_t* key, void* data){
     for(i = 0; i < 16; i++){
       *((uint8_t *)data +i) = AES.STATE;
     }
-    encrypt_ok = true;
+    ok = true;
   } else {
-    encrypt_ok = false;
+    ok = false;
   }
 
-  return encrypt_ok;
+  return ok;
 }
 
 // Decrypt a single 128bit block. Both data, key are 16 uint8_t.
-bool aes128_dec_single(const uint8_t* key, void* data){
-  bool decrypt_ok;
-  uint8_t i;
+bool aes128_enc_single(const uint8_t* key, void* data) {
+  return aes128_do_single(key, data, (AES.CTRL & (~AES_DECRYPT_bm)) | AES_START_bm);
+}
 
-  /* Load key into AES key memory. */
-  for(i = 0; i < 16; i++)
-    AES.KEY = key[i];
-
-  // Load data into AES state memory.
-  for(i = 0; i < 16; i++)
-    AES.STATE = *((uint8_t *)data +i);
-
-  // Set AES in decryption mode and start AES.
-  AES.CTRL |= (AES_START_bm | AES_DECRYPT_bm);
-
-  do{ // Wait until AES is finished or an error occurs.
-  } while((AES.STATUS & (AES_SRIF_bm|AES_ERROR_bm) ) == 0);
-
-  // If not error.
-  if((AES.STATUS & AES_ERROR_bm) == 0) {
-    /* Store the result. */
-    for(i = 0; i < 16; i++)
-      *((uint8_t *)data +i) = AES.STATE;
-    decrypt_ok = true;
-  } else {
-    decrypt_ok = false;
-  }
-
-  return decrypt_ok;
+// Decrypt a single 128bit block. Both data, key are 16 uint8_t.
+bool aes128_dec_single(const uint8_t* key, void* data) {
+  return aes128_do_single(key, data, AES.CTRL | (AES_DECRYPT_bm | AES_START_bm));
 }
 
 // Decrypt data with AES128-CBC. key, iv are 16 uint8_t's, data assumed to have
