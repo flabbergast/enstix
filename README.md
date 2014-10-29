@@ -169,7 +169,8 @@ the list of functions that it provides.
 
 ## Roadmap / TODO
 
-- Use xmega's hardware AES128 instead of a software implementation.
+- Switch to AES128 for key encryption -> and ditch software AES
+  completely?
 - Figure out and implement another way of entering the passphrase that
   wouldn't require Serial access.
 - Use the AVRstick's button and the Keyboard interface to "one-button
