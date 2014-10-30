@@ -5,23 +5,13 @@ This is a firmware for Stephan Bärwolf's
 ATMEL's atxmega128a3u, which turns it into an USB stick pretending
 to be a combined Mass Storage, CDC Serial and HID/Keyboard interface.
 
-The current functionality is as follows:
+The whole shebang is about making the AVR stick into an encrypted USB
+storage (64kB in size).
 
- - When insterted into a computer, the Mass Storage identifies as a
-   read-only FAT12-formatted USB drive (with one README.TXT file on it).
- - Connecting to the Serial interface with a terminal (e.g. putty,
-   picocom, minicom or screen) allows for entering a password. With the
-   correct password, it disconnects from USB and reconnects as another
-   FAT12-formatted 64kB USB drive, again read-only. This one can be made
-   writable by again connecting via Serial and issuing the proper
-   command.
- - At this point, the storage works as a normal (64kB "big")
-   SCSI disk - you can repartition and reformat to your liking. Its
-   contents are stored on the AVR stick, encrypted with AES.
- - The Keyboard is not doing anything at the moment.
-
-So the whole shebang is about making the AVR stick into an encrypted USB
-storage.
+The contents of the disk are stored in the AVR stick's flash, encrypted
+with AES128. "Unlocking" the drive is done by connecting to the stick
+via CDC Serial interface and entering the passphrase (see the Usage
+instructions for more details).
 
 To use the Serial on Windows machines, an `.inf` file is provided (not
 tested). Note that it doesn't install any driver, it just lets Windows
@@ -146,7 +136,7 @@ one of serial terminal programs, e.g.
 [picocom](https://code.google.com/p/picocom/),
 [puTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html) or
 even [screen](http://www.gnu.org/software/screen/). The baud rate is not
-important, any should work. For example
+important, any should work. For example, on linux:
 
         picocom -b 115200 /dev/ttyUSB0
 
@@ -163,7 +153,7 @@ keys do the following:
 
 - `i` will print some info.
 - `p` will ask you for your passphrase. If entered correctly, the stick
-  switched to the "encrypted mode".
+  switches to the "encrypted mode".
 - with `r` you can switch from "read-only" to "writable" and back. This
   only works in the "encrypted mode".
 - with `c` you can change your passphrase.
@@ -175,8 +165,8 @@ then connect back after 1 second delay.
 In the "encrypted mode", the Mass Storage works as a common SCSI disk
 drive, 64kB in size. The only thing that the stick is doing is that
 whenever the computer wants to read a sector from that "drive", the
-stick will take the appopriate portion of the flash, decrypts it and
-serves the result to the computer. Likewise for writing (receive the
+stick will take the appopriate portion of the flash, decrypt it and
+serve the result to the computer. Likewise for writing (receive the
 sector contents, encrypt and save to flash). So you can partition and
 format the 64kB to your liking. All the partition/filesystem business is
 now done on the computer side. If you followed the set-up instructions
@@ -191,11 +181,31 @@ you actually need to write some data to it).
 
 The encrypted disk image is encrypted with aes128-cbc-essiv (probably
 not directly compatible with other existing programs using this scheme).
+So there is one main AES128 key. This one is used to encrypt each sector
+(512 bytes) with CBC, where the IV is derived from the key and the
+sector number as described by the ESSIV scheme.
+
 What is stored in xmega's EEPROM is the main AES128 key encrypted with
-AES128 (the key for this is the SHA256 hash of the passphrase).
-Another piece of data stored in EEPROM is the SHA256 hash of the SHA256
-hash of the passphrase (for verifying if the entered passphrase is
-"correct").
+AES (the key for this is the first 16 bytes of the SHA256 hash of the
+passphrase). Another piece of data stored in EEPROM is the SHA256 hash
+of the SHA256 hash of the passphrase (for verifying if the entered
+passphrase is "correct").
+
+Of course, the (encrypted) disk drive image can be easily extracted from
+the stick by putting it into the bootloader mode and inspecting the
+contents of the `FIRMWARE.BIN` file. Likewise, the passphrase-encrypted
+AES key, as well as HASH^2(passphrase) can be read from `EEPROM.BIN`
+file.
+
+Finally, while the stick is in operation and in the "encrypted mode",
+the main AES key is stored in chip's SRAM (working memory), as well as
+probably in the "AES hardware module" of the chip. So it can be probably
+extracted with, say, a JTAG debugger hooked up to the chip. This is the
+same problem as with pretty much all the "encrypted storage" schemes
+that I know - while the encryption is in operation, the key can be
+extracted from the device's working memory. However, as the passphrase
+is only needed for getting a hold of the main AES key, it is deleted
+from the working memory after the main AES key is decrypted.
 
 I would be grateful if you can let me know if there are some security
 holes in this scheme.
