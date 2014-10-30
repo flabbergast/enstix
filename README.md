@@ -128,6 +128,65 @@ bootloader mode. Note that it doesn't matter what passwords
 EEPROM contents on the AVR stick (i.e. you don't write to `EEPROM.BIN`
 file on the AVR stick in bootloader mode).
 
+## Usage
+
+When the AVR stick is first inserted, it presents itself as a USB
+composite device, Mass Storage combined with CDC Serial and Keyboard.
+
+Keyboard is there, but its functionality is not used at the moment.
+
+Mass Storage appears as a 64kB SCSI USB drive, with one read-only
+FAT12-formatted partition (ENSTIX), with one README.TXT file on it.
+Nothing too interesting. (You can tweak the contents of the README file
+in the sources, `Config/AppConfig.h`.)
+
+To switch to "encrypted mode", connect to the Serial interface using
+one of serial terminal programs, e.g.
+[minicom](https://alioth.debian.org/projects/minicom),
+[picocom](https://code.google.com/p/picocom/),
+[puTTY](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html) or
+even [screen](http://www.gnu.org/software/screen/). The baud rate is not
+important, any should work. For example
+
+        picocom -b 115200 /dev/ttyUSB0
+
+or
+
+        screen /dev/ttyACM0 115200
+
+You should of course use the apropriate `ttyXXXX`, you can find it by
+looking at the output of `dmesg`.
+
+OK, so now you're talking to AVR stick via a serial terminal. Any key
+other that `i`, `p`, `r`, `c` will display a short help. The individual
+keys do the following:
+
+- `i` will print some info.
+- `p` will ask you for your passphrase. If entered correctly, the stick
+  switched to the "encrypted mode".
+- with `r` you can switch from "read-only" to "writable" and back. This
+  only works in the "encrypted mode".
+- with `c` you can change your passphrase.
+
+Note that any change to the disk state (initial -> encrypted mode, or RO
+to RW or back) will cause the whole stick to disconnect from USB and
+then connect back after 1 second delay.
+
+In the "encrypted mode", the Mass Storage works as a common SCSI disk
+drive, 64kB in size. The only thing that the stick is doing is that
+whenever the computer wants to read a sector from that "drive", the
+stick will take the appopriate portion of the flash, decrypts it and
+serves the result to the computer. Likewise for writing (receive the
+sector contents, encrypt and save to flash). So you can partition and
+format the 64kB to your liking. All the partition/filesystem business is
+now done on the computer side. If you followed the set-up instructions
+above, then the default "contents" of the drive will be a drive with one
+FAT12-formatted partition (ENSTIXEN).
+
+Once more, the xmega's flash has a *very* limited lifespan, so I
+recommend enabling the RW mode only when absolutely necessary (so when
+you actually need to write some data to it).
+
 ## Encryption details
 
 The encrypted disk image is encrypted with aes128-cbc-essiv (probably
@@ -177,15 +236,13 @@ the list of functions that it provides.
 
 ## Roadmap / TODO
 
-- Switch to AES128 for key encryption -> and ditch software AES
-  completely?
 - Figure out and implement another way of entering the passphrase that
   wouldn't require Serial access.
 - Use the AVRstick's button and the Keyboard interface to "one-button
   typing password", a-la [DIY USB password
   generator](http://codeandlife.com/2012/03/03/diy-usb-password-generator/)
-- Use external microSD or dataflash storage instead of the poor xmega's
-  flash.
+- Use external microSD or dataflash storage instead of the poor little
+  xmega's flash.
 - Design and make a hardware "shield" with a microSD socket to be
   soldered to the AVRstick, turning it into a "hardware encrypted
   storage" stick.
