@@ -65,30 +65,30 @@
             }
             static inline void LEDs_TurnOnLEDs(const uint8_t LEDMask)
             {
-                PORTE_OUTSET = LEDMask & LEDS_ALL_LEDS;
+                PORTE.OUTSET = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_TurnOffLEDs(const uint8_t LEDMask)
             {
-                PORTE_OUTCLR = LEDMask & LEDS_ALL_LEDS;
+                PORTE.OUTCLR = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_SetAllLEDs(const uint8_t LEDMask)
             {
-                PORTE_OUTCLR = LEDS_ALL_LEDS;
-                PORTE_OUTSET = LEDMask & LEDS_ALL_LEDS;
+                PORTE.OUTCLR = LEDS_ALL_LEDS;
+                PORTE.OUTSET = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_ChangeLEDs(const uint8_t LEDMask, const uint8_t ActiveMask)
             {
-                PORTE_OUTCLR = (LEDMask & LEDS_ALL_LEDS);
-                PORTE_OUTSET = (ActiveMask & LEDS_ALL_LEDS);
+                PORTE.OUTCLR = (LEDMask & LEDS_ALL_LEDS);
+                PORTE.OUTSET = (ActiveMask & LEDS_ALL_LEDS);
             }
             static inline void LEDs_ToggleLEDs(const uint8_t LEDMask)
             {
-                PORTE_OUTTGL = (LEDMask & LEDS_ALL_LEDS);
+                PORTE.OUTTGL = (LEDMask & LEDS_ALL_LEDS);
             }
             static inline uint8_t LEDs_GetLEDs(void) ATTR_WARN_UNUSED_RESULT;
             static inline uint8_t LEDs_GetLEDs(void)
             {
-                return ((PORTE_OUT & LEDS_ALL_LEDS));
+                return ((PORTE.OUT & LEDS_ALL_LEDS));
             }
         #endif
     /* Disable C linkage for C++ Compilers: */
