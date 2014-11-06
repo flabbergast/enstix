@@ -48,6 +48,8 @@ void hexprint(uint8_t *p, uint16_t length) {
 
 void compute_iv_for_sector(uint32_t sectorNumber);
 
+#define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
+
 /*************************************************************************
  * ------------------------- Main Program -------------------------------*
  *************************************************************************/
@@ -58,6 +60,10 @@ int main(void)
   bool button_press_registered = false;
   uint32_t button_press_length = 0;
 
+  /* disable JTAG on XMEGAs */
+  #if (defined(__AVR_ATxmega128A3U__))
+    DISABLE_JTAG;
+  #endif
 
   /* Initialisation */
   init();
