@@ -224,8 +224,13 @@ static bool SCSI_Command_Request_Sense(USB_ClassInfo_MS_Device_t* const MSInterf
  */
 static bool SCSI_Command_Read_Capacity_10(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo)
 {
-  Endpoint_Write_32_BE(LUN_MEDIA_BLOCKS - 1);
-  Endpoint_Write_32_BE(VIRTUAL_DISK_BLOCK_SIZE);
+  if (disk_state == DISK_STATE_ENCRYPTING) {
+    Endpoint_Write_32_BE((disk_size/TOTAL_LUNS) - 1);
+    Endpoint_Write_32_BE(VIRTUAL_DISK_BLOCK_SIZE);
+  } else {
+    Endpoint_Write_32_BE(VIRTUALFAT_LUN_MEDIA_BLOCKS - 1);
+    Endpoint_Write_32_BE(VIRTUALFAT_DISK_BLOCK_SIZE);
+  }
   Endpoint_ClearIN();
 
   /* Succeed the command and update the bytes transferred counter */
@@ -267,7 +272,8 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
   TotalBlocks  = SwapEndian_16(*(uint16_t*)&MSInterfaceInfo->State.CommandBlock.SCSICommandData[7]);
 
   /* Check if the block address is outside the maximum allowable value for the LUN */
-  if (BlockAddress >= LUN_MEDIA_BLOCKS)
+  if ( (disk_state == DISK_STATE_ENCRYPTING && BlockAddress >= (disk_size / TOTAL_LUNS)) ||
+       (disk_state == DISK_STATE_INITIAL && BlockAddress >= VIRTUALFAT_LUN_MEDIA_BLOCKS) )
   {
     /* Block address is invalid, update SENSE key and return command fail */
     SCSI_SET_SENSE(SCSI_SENSE_KEY_ILLEGAL_REQUEST,

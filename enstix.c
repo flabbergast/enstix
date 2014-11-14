@@ -60,6 +60,9 @@ int main(void)
   bool button_press_registered = false;
   uint32_t button_press_length = 0;
 
+  // should set the disk size soon
+  disk_size = VIRTUAL_DISK_BLOCKS;
+
   /* disable JTAG on XMEGAs */
   #if (defined(__AVR_ATxmega128A3U__))
     DISABLE_JTAG;

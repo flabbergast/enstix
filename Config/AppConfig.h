@@ -47,7 +47,7 @@
 
   #define TOTAL_LUNS                1
 
-  /** Total number of bytes of the storage medium, comprised of one or more Dataflash ICs. */
+  /** Total number of bytes of the storage medium. */
   #define VIRTUAL_DISK_BYTES                65536
 
   /** Block size of the device. This is kept at 512 to remain compatible with the OS. */
@@ -63,7 +63,17 @@
   #define VIRTUAL_DISK_BLOCKS              (VIRTUAL_DISK_BYTES / VIRTUAL_DISK_BLOCK_SIZE)
 
   /** Blocks in each LUN, calculated from the total capacity divided by the total number of Logical Units in the device. */
-  #define LUN_MEDIA_BLOCKS         (VIRTUAL_DISK_BLOCKS / TOTAL_LUNS)
+  #define LUN_MEDIA_BLOCKS                 (VIRTUAL_DISK_BLOCKS / TOTAL_LUNS)
+
+  /** Initial VirtualFAT disk configuration */
+  #define VIRTUALFAT_DISK_BYTES             16384
+  #define VIRTUALFAT_TOTAL_LUNS             1
+  /** Block size of the device. This is kept at 512 to remain compatible with the OS. */
+  #define VIRTUALFAT_DISK_BLOCK_SIZE        512
+  /** Total number of blocks of the virtual memory for reporting to the host as the device's total capacity. */
+  #define VIRTUALFAT_DISK_BLOCKS            (VIRTUALFAT_DISK_BYTES / VIRTUALFAT_DISK_BLOCK_SIZE)
+  /** Blocks in each LUN, calculated from the total capacity divided by the total number of Logical Units in the device. */
+  #define VIRTUALFAT_LUN_MEDIA_BLOCKS       (VIRTUALFAT_DISK_BLOCKS / VIRTUALFAT_TOTAL_LUNS)
 
   /** Size of the virtual README.TXT file in bytes. */
   /**  It's assumed to be a multiple of 512 (BLOCK_SIZE). */

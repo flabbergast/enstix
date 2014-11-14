@@ -14,6 +14,9 @@
 //   since the OS can still think otherwise
 volatile bool disk_read_only;
 
+// Size of the virtual disk to be reported to OS - in BLOCKS!
+volatile uint32_t disk_size;
+
 // Initial state or encrypting? (should detach/attach USB after changing)
 #define DISK_STATE_INITIAL 1
 #define DISK_STATE_ENCRYPTING 2
