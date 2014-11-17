@@ -71,6 +71,7 @@
     void usb_serial_writeln_P(const char* data);
     void usb_serial_flush_output(void);
     uint16_t usb_serial_readline(char *buffer, const uint16_t buffer_size, const bool obscure_input); // BLOCKING (takes care of _tasks)
+    bool usb_serial_dtr(void);
     // usb_keyboard
     bool usb_keyboard_press(uint8_t key, uint8_t mod);
     // buttons, LEDs and such

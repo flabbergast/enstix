@@ -48,6 +48,13 @@ void hexprint(uint8_t *p, uint16_t length) {
 
 void compute_iv_for_sector(uint32_t sectorNumber);
 
+void print_help(void) {
+  usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
+}
+void print_header(void) {
+  usb_serial_writeln_P(FIRMWARE_VERSION);
+}
+
 #define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
 
 /*************************************************************************
@@ -62,6 +69,8 @@ int main(void)
 
   // should set the disk size soon
   disk_size = VIRTUAL_DISK_BLOCKS;
+
+  bool dtr,prev_dtr = false;
 
   /* disable JTAG on XMEGAs */
   #if (defined(__AVR_ATxmega128A3U__))
@@ -97,11 +106,20 @@ int main(void)
       button_press_registered = false;
     }
 
+    // check dtr
+    dtr = usb_serial_dtr();
+    if( dtr && !prev_dtr ) {
+      _delay_ms(50);
+      print_header();
+      print_help();
+    }
+    prev_dtr = dtr;
+
     /* Handling of the serial dialogue */
     if( usb_serial_available() > 0 ) {
       switch(usb_serial_getchar()) {
         case 'i': // info
-          usb_serial_writeln_P(FIRMWARE_VERSION);
+          print_header();
           if(disk_state == DISK_STATE_INITIAL) {
             usb_serial_write_P(PSTR("Encrypted main AES key: "));
             hexprint(key, 16);
@@ -247,7 +265,7 @@ int main(void)
           }
           break;
         default:
-          usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
+          print_help();
       }
     }
 

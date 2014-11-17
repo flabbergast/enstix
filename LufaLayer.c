@@ -283,6 +283,10 @@ uint16_t usb_serial_readline(char *buffer, const uint16_t buffer_size, const boo
   return 0; // never reached
 }
 
+bool usb_serial_dtr(void) {
+  return(VirtualSerial_CDC_Interface.State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_OUT_DTR);
+}
+
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
 void SetupHardware(void)
 {
