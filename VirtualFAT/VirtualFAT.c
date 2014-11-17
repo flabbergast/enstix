@@ -241,7 +241,7 @@ static void ReadWriteREADMEFileBlock(const uint16_t BlockNumber,
   #if (FLASHEND > 0xFFFF)
   uint_farptr_t FlashAddress = (uint_farptr_t)readme_contents + (uint_farptr_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
   #else
-  uint_ptr_t FlashAddress = (uint_ptr_t)readme_contents + (uint_ptr_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
+  uintptr_t FlashAddress = (uintptr_t)readme_contents + (uintptr_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
   #endif
 
   if (Read)

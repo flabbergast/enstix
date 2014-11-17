@@ -18,8 +18,8 @@ BOARD        = USER
 F_CPU        = 32000000
 F_USB        = 48000000
 ## --- for bobricius' usb stick with m32u4
-#ARCH         = AVR8
 #MCU          = atmega32u4
+#ARCH         = AVR8
 #BOARD        = OLIMEX32U4
 #F_CPU        = 16000000
 #F_USB        = $(F_CPU)
@@ -39,8 +39,8 @@ all:
 # flabbergast: add default avrdude settings
 AVRDUDE_PROGRAMMER = avr109
 #AVRDUDE_PORT = /dev/tty.usbmodem004581
-#AVRDUDE_PORT = /dev/ttyACM0
-AVRDUDE_PORT = /dev/tty.usbmodemfa131
+AVRDUDE_PORT = /dev/ttyACM0
+#AVRDUDE_PORT = /dev/tty.usbmodemfa131
 
 # Include LUFA build script makefiles
 include $(LUFA_PATH)/Build/lufa_core.mk

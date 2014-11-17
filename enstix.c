@@ -274,9 +274,13 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   /* compute iv */
   compute_iv_for_sector(sectorNumber);
 
+  #if (defined(__AVR_ATxmega128A3U__))
   /* read the data */
   memcpy_PF(out_sectordata, (uint_farptr_t)DISK_AREA_BEGIN_BYTE+(uint_farptr_t)(sectorNumber*VIRTUAL_DISK_BLOCK_SIZE), VIRTUAL_DISK_BLOCK_SIZE);
   //flash_readpage(out_sectordata, DISK_AREA_BEGIN_PAGE+sectorNumber);
+  #else // need to do something else if not on x128a3u
+  memset(&out_sectordata[0], ~(sectorNumber & 0xff), VIRTUAL_DISK_BLOCK_SIZE); // just for testing
+  #endif
 
   /* decrypt */
   #if (defined(__AVR_ATxmega128A3U__))
@@ -290,9 +294,11 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
 }
 
 int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE], const uint32_t sectorNumber) {
+  #if (defined(__AVR_ATxmega128A3U__))
   if(__checkmagic()==0) { // do not run the code if not on Stephan Baerwolf's hardware/bootloader
     return 0;
   }
+  #endif
 
   /* compute iv */
   compute_iv_for_sector(sectorNumber);
@@ -300,6 +306,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   /* encrypt the data */
   aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
 
+  #if (defined(__AVR_ATxmega128A3U__)) // this can only happen on x128a3u
   /* write the data to flash */
   // figure out how many memory pages we need to write
   uint_farptr_t write_to_page = DISK_AREA_BEGIN_PAGE + (sectorNumber * MEM_PAGES_PER_DISK_BLOCK);
@@ -307,6 +314,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   if(write_to_page+MEM_PAGES_PER_DISK_BLOCK <= PROGMEM_PAGECOUNT-__reportBLSpagesize())
     for(uint8_t i=0; i<MEM_PAGES_PER_DISK_BLOCK; i++)
       flash_writepage(in_sectordata+(MEM_PAGES_PER_DISK_BLOCK*i), write_to_page+i);
+  #endif
 
   return VIRTUAL_DISK_BLOCK_SIZE;
 }
