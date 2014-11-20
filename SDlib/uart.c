@@ -36,6 +36,25 @@
 #define UCSZ0 UCSZ00
 #define UCSZ1 UCSZ01
 #define UCSRC_SELECT 0
+#elif defined(UDR1) // e.g. atmega32u4 (USART1 is the main serial)
+#define UBRRH UBRR1H
+#define UBRRL UBRR1L
+#define UDR UDR1
+
+#define UCSRA UCSR1A
+#define UDRE UDRE1
+#define RXC RXC1
+
+#define UCSRB UCSR1B
+#define RXEN RXEN1
+#define TXEN TXEN1
+#define RXCIE RXCIE1
+
+#define UCSRC UCSR1C
+#define URSEL
+#define UCSZ0 UCSZ10
+#define UCSZ1 UCSZ11
+#define UCSRC_SELECT 0
 #else
 #define UCSRC_SELECT (1 << URSEL)
 #endif
@@ -47,6 +66,8 @@
 #define USART_RXC_vect UART_RX_vect
 #elif defined(USART0_RX_vect)
 #define USART_RXC_vect USART0_RX_vect
+#elif defined(USART1_RX_vect) // e.g. atmega32u4 (USART1 is the main serial)
+#define USART_RXC_vect USART1_RX_vect
 #elif defined(USART_RX_vect)
 #define USART_RXC_vect USART_RX_vect
 #elif defined(USART0_RXC_vect)
