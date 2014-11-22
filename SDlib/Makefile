@@ -1,14 +1,14 @@
 
 NAME := sd-reader
 HEX := $(NAME).hex
-OUT := $(NAME).out
+OUT := $(NAME).elf
 MAP := $(NAME).map
 SOURCES := $(wildcard *.c)
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 
-MCU := atmega168
-MCU_AVRDUDE := m168
+MCU := atmega32u4
+MCU_AVRDUDE := $(MCU)
 MCU_FREQ := 16000000UL
 
 CC := avr-gcc
@@ -25,7 +25,7 @@ clean:
 	rm -rf doc/html
 
 flash: $(HEX)
-	avrdude -y -c avr910 -p $(MCU_AVRDUDE) -U flash:w:$(HEX)
+	avrdude -y -c avr109 -p $(MCU_AVRDUDE) -P /dev/ttyACM0 -U flash:w:$(HEX)
 
 $(HEX): $(OUT)
 	$(OBJCOPY) -R .eeprom -O ihex $< $@

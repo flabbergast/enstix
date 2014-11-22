@@ -1,5 +1,7 @@
 *.hex
 *.bin
+*.BIN
+*.out
 *.eep
 *.o
 *.elf
@@ -8,5 +10,6 @@
 *.lst
 *.d
 *.sym
+eeprom_contents.c
 
 LUFA/
