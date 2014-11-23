@@ -7,7 +7,8 @@ SOURCES := $(wildcard *.c)
 HEADERS := $(wildcard *.h)
 OBJECTS := $(patsubst %.c,%.o,$(SOURCES))
 
-MCU := atmega32u4
+#MCU := atmega328p
+MCU := atmega328p
 MCU_AVRDUDE := $(MCU)
 MCU_FREQ := 16000000UL
 
@@ -25,7 +26,8 @@ clean:
 	rm -rf doc/html
 
 flash: $(HEX)
-	avrdude -y -c avr109 -p $(MCU_AVRDUDE) -P /dev/ttyACM0 -U flash:w:$(HEX)
+	avrdude -y -c arduino -p $(MCU_AVRDUDE) -b 57600 -P /dev/tty.usbserial-A702U5EU -U flash:w:$(HEX)
+#	avrdude -y -c avr109 -p $(MCU_AVRDUDE) -P /dev/tty.usbmodemfd111 -U flash:w:$(HEX)
 
 $(HEX): $(OUT)
 	$(OBJCOPY) -R .eeprom -O ihex $< $@
