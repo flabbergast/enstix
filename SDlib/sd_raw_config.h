@@ -109,11 +109,11 @@ extern "C"
 #elif defined(__AVR_ATmega32U4__)
     #define configure_pin_mosi() DDRB |= (1 << DDB2)
     #define configure_pin_sck() DDRB |= (1 << DDB1)
-    #define configure_pin_ss() DDRC |= (1 << DDC7)
+    #define configure_pin_ss() DDRB |= (1 << DDB6)
     #define configure_pin_miso() DDRB &= ~(1 << DDB3)
 
-    #define select_card() PORTC &= ~(1 << PORTC7)
-    #define unselect_card() PORTC |= (1 << PORTC7)
+    #define select_card() PORTB &= ~(1 << PORTB6)
+    #define unselect_card() PORTB |= (1 << PORTB6)
 #else
     #error "no sd/mmc pin mapping available!"
 #endif

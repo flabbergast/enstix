@@ -39,9 +39,27 @@
 #ifndef _APP_CONFIG_H_
 #define _APP_CONFIG_H_
 
-   #ifndef FORMATTED_DATE
-   #define FORMATTED_DATE __DATE__
-   #endif
+  /** Want to use SD card? Comment out if not (and use flash memory for storage). */
+  #define USE_SDCARD
+
+  /** Size of the virtual README.TXT file in bytes. */
+  /**  It's assumed to be a multiple of 512 (BLOCK_SIZE). */
+  #define README_FILE_SIZE_BYTES    512
+
+  /** Contents of the README file. Needs to have exactly README_FILE_SIZE_BYTES bytes!  */
+  #define README_CONTENTS "\
+To do anything interesting with this AVR stick, you should conne\
+ct to it via the virtual serial port (using a serial terminal pr\
+ogram, e.g. puTTY, minicom, picocom or screen).                 \
+                                                                \
+                                                                \
+                                                                \
+                                                                \
+                                                                "
+
+  #ifndef FORMATTED_DATE
+  #define FORMATTED_DATE __DATE__
+  #endif
 
   #define FIRMWARE_VERSION          PSTR(" * enstix v1.21 (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
 
@@ -74,20 +92,5 @@
   #define VIRTUALFAT_DISK_BLOCKS            (VIRTUALFAT_DISK_BYTES / VIRTUALFAT_DISK_BLOCK_SIZE)
   /** Blocks in each LUN, calculated from the total capacity divided by the total number of Logical Units in the device. */
   #define VIRTUALFAT_LUN_MEDIA_BLOCKS       (VIRTUALFAT_DISK_BLOCKS / VIRTUALFAT_TOTAL_LUNS)
-
-  /** Size of the virtual README.TXT file in bytes. */
-  /**  It's assumed to be a multiple of 512 (BLOCK_SIZE). */
-  #define README_FILE_SIZE_BYTES    512
-
-  /** Contents of the README file. Needs to have exactly README_FILE_SIZE_BYTES bytes!  */
-  #define README_CONTENTS "\
-To do anything interesting with this AVR stick, you should conne\
-ct to it via the virtual serial port (using a serial terminal pr\
-ogram, e.g. puTTY, minicom, picocom or screen).                 \
-                                                                \
-                                                                \
-                                                                \
-                                                                \
-                                                                "
 
 #endif

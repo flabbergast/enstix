@@ -10,6 +10,8 @@
 #include "crypto/crypto.h"
 #include "crypto/sha256.h"
 
+#include "SDlib/sd_raw.h"
+
 #include "apipage.h"
 
 #include <avr/eeprom.h>
@@ -32,28 +34,19 @@ uint8_t lastsubkey[16]; // hardware AES module needs a different key for decrypt
 #endif
 uint8_t key_hash[32];
 uint8_t iv[16];
+#if defined(USE_SDCARD)
+uint8_t sd_exists = 0;
+struct sd_raw_info sd_card_info;
+#endif
 
 /*************************************************************************
  * ----------------------- Helper functions -----------------------------*
  *************************************************************************/
-void hexprint(uint8_t *p, uint16_t length) {
-  uint16_t i;
-  char buffer[4];
-  for(i=0; i<length; i++) {
-    snprintf(buffer, 3, "%02x", p[i]);
-    usb_serial_write(buffer);
-  }
-  usb_serial_write_P(PSTR("\n\r"));
-}
-
+void hexprint(uint8_t *p, uint16_t length);
+void print_help(void);
+void print_header(void);
+void print_sd_card_info(void);
 void compute_iv_for_sector(uint32_t sectorNumber);
-
-void print_help(void) {
-  usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
-}
-void print_header(void) {
-  usb_serial_writeln_P(FIRMWARE_VERSION);
-}
 
 #define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
 
@@ -79,6 +72,12 @@ int main(void)
 
   /* Initialisation */
   init();
+
+  #if defined(USE_SDCARD)
+  if( sd_raw_init() && sd_raw_get_info(&sd_card_info) ) {
+    sd_exists = 1;
+  }
+  #endif
 
   /* read the eeprom data into SRAM */
   eeprom_read_block((void*)key, (const void*)aes_key_encrypted, 16); // it's still encrypted at this point
@@ -120,6 +119,15 @@ int main(void)
       switch(usb_serial_getchar()) {
         case 'i': // info
           print_header();
+          #if defined(USE_SDCARD)
+          usb_serial_write_P(PSTR("(Micro)SD status: "));
+          if(sd_exists) {
+            usb_serial_writeln_P(PSTR("initialised"));
+            print_sd_card_info();
+          } else {
+            usb_serial_writeln_P(PSTR("not connected/communicating"));
+          }
+          #endif
           if(disk_state == DISK_STATE_INITIAL) {
             usb_serial_write_P(PSTR("Encrypted main AES key: "));
             hexprint(key, 16);
@@ -250,6 +258,9 @@ int main(void)
               usb_serial_wait_for_key();
               disk_state = DISK_STATE_ENCRYPTING;
               disk_read_only = true;
+              if(sd_exists) {
+                disk_size = (uint32_t)(sd_card_info.capacity / VIRTUAL_DISK_BLOCK_SIZE);
+              }
               USB_Disable();
               // which to use? _Detach and _Attach; or _Disable and _Init; or _ResetInterface
               // best experience with Disable/Init so far
@@ -262,6 +273,22 @@ int main(void)
             }
           } else {
             usb_serial_writeln_P(PSTR("Already in encrypted disk mode."));
+          }
+          break;
+        case 'T': // TODO: testing
+          if(disk_state == DISK_STATE_INITIAL) {
+              disk_state = DISK_STATE_ENCRYPTING;
+              disk_read_only = true;
+              if(sd_exists) {
+                disk_size = (uint32_t)(sd_card_info.capacity / 512);
+              }
+              USB_Disable();
+              // which to use? _Detach and _Attach; or _Disable and _Init; or _ResetInterface
+              // best experience with Disable/Init so far
+              _delay_ms(1000);
+              USB_Init();
+              _delay_ms(200);
+              usb_serial_flush_input();
           }
           break;
         default:
@@ -297,7 +324,12 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   memcpy_PF(out_sectordata, (uint_farptr_t)DISK_AREA_BEGIN_BYTE+(uint_farptr_t)(sectorNumber*VIRTUAL_DISK_BLOCK_SIZE), VIRTUAL_DISK_BLOCK_SIZE);
   //flash_readpage(out_sectordata, DISK_AREA_BEGIN_PAGE+sectorNumber);
   #else // need to do something else if not on x128a3u
-  memset(&out_sectordata[0], ~(sectorNumber & 0xff), VIRTUAL_DISK_BLOCK_SIZE); // just for testing
+    #if defined(USE_SDCARD)
+    if(sd_exists) {
+      uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
+      sd_raw_read(offset, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    }
+    #endif
   #endif
 
   /* decrypt */
@@ -332,10 +364,21 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   if(write_to_page+MEM_PAGES_PER_DISK_BLOCK <= PROGMEM_PAGECOUNT-__reportBLSpagesize())
     for(uint8_t i=0; i<MEM_PAGES_PER_DISK_BLOCK; i++)
       flash_writepage(in_sectordata+(MEM_PAGES_PER_DISK_BLOCK*i), write_to_page+i);
+  #else
+    #if defined(USE_SDCARD)
+    if(sd_exists) {
+      uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
+      sd_raw_write(offset, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    }
+    #endif
   #endif
 
   return VIRTUAL_DISK_BLOCK_SIZE;
 }
+
+/*************************************************************************
+ * ----------------- Helper functions implementation --------------------*
+ *************************************************************************/
 
 // uses global variables: iv, key_hash. Assumes key_hash has the hash of the key in it :)
 void compute_iv_for_sector(uint32_t sectorNumber) {
@@ -345,4 +388,38 @@ void compute_iv_for_sector(uint32_t sectorNumber) {
   memcpy(iv, (const void*)&sectorNumber, sizeof(uint32_t));
   // encrypt the sn with aes128, the key being the hash of the main key
   aes128_enc_single(key_hash, iv);
+}
+
+void hexprint(uint8_t *p, uint16_t length) {
+  uint16_t i;
+  char buffer[4];
+  for(i=0; i<length; i++) {
+    snprintf(buffer, 3, "%02x", p[i]);
+    usb_serial_write(buffer);
+  }
+  usb_serial_write_P(PSTR("\n\r"));
+}
+
+void print_help(void) {
+  usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
+}
+
+void print_header(void) {
+  usb_serial_writeln_P(FIRMWARE_VERSION);
+}
+
+void print_sd_card_info() {
+  usb_serial_write_P(PSTR("manuf:  0x")); hexprint(&sd_card_info.manufacturer,1);
+  usb_serial_write_P(PSTR("oem:    ")); usb_serial_writeln((char*) sd_card_info.oem);
+  usb_serial_write_P(PSTR("prod:   ")); usb_serial_writeln((char*) sd_card_info.product);
+  usb_serial_write_P(PSTR("rev:    ")); hexprint(&sd_card_info.revision,1);
+  usb_serial_write_P(PSTR("serial: 0x")); hexprint((uint8_t*)(&sd_card_info.serial),1);
+  /*
+  usb_serial_write_P(PSTR("date:   ")); uart_putw_dec(sd_card_info.manufacturing_month); uart_putc('/');
+                                 uart_putw_dec(sd_card_info.manufacturing_year); uart_putc('\n');
+  usb_serial_write_P(PSTR("size:   ")); uart_putdw_dec(sd_card_info.capacity / 1024 / 1024); uart_puts_p(PSTR("MB\n"));
+  usb_serial_write_P(PSTR("copy:   ")); uart_putw_dec(sd_card_info.flag_copy); uart_putc('\n');
+  usb_serial_write_P(PSTR("wr.pr.: ")); uart_putw_dec(sd_card_info.flag_write_protect_temp); uart_putc('/');
+                                 uart_putw_dec(sd_card_info.flag_write_protect); uart_putc('\n');
+                                 */
 }
