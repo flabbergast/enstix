@@ -5,6 +5,7 @@
  */
 
 #include "LufaLayer.h"
+#include "SerialHelpers.h"
 #include "enstix.h"
 
 #include "crypto/crypto.h"
@@ -42,7 +43,6 @@ struct sd_raw_info sd_card_info;
 /*************************************************************************
  * ----------------------- Helper functions -----------------------------*
  *************************************************************************/
-void hexprint(uint8_t *p, uint16_t length);
 void print_help(void);
 void print_header(void);
 #if defined(USE_SDCARD)
@@ -345,7 +345,7 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   /* decrypt */
   #if (defined(__AVR_ATxmega128A3U__))
     // hardware AES module needs a different key for decryption
-    //aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
   #else
     aes128_cbc_dec(key, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
   #endif
@@ -364,7 +364,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   compute_iv_for_sector(sectorNumber);
 
   /* encrypt the data */
-  //aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
 
 #if defined(USE_SDCARD)
   if(sd_exists) {
@@ -402,16 +402,6 @@ void compute_iv_for_sector(uint32_t sectorNumber) {
   aes128_enc_single(key_hash, iv);
 }
 
-void hexprint(uint8_t *p, uint16_t length) {
-  uint16_t i;
-  char buffer[4];
-  for(i=0; i<length; i++) {
-    snprintf(buffer, 3, "%02x", p[i]);
-    usb_serial_write(buffer);
-  }
-  usb_serial_write_P(PSTR("\n\r"));
-}
-
 void print_help(void) {
   usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
 }
@@ -422,18 +412,24 @@ void print_header(void) {
 
 #if defined(USE_SDCARD)
 void print_sd_card_info() {
-  usb_serial_write_P(PSTR("manuf:  0x")); hexprint(&sd_card_info.manufacturer,1);
-  usb_serial_write_P(PSTR("oem:    ")); usb_serial_writeln((char*) sd_card_info.oem);
-  usb_serial_write_P(PSTR("prod:   ")); usb_serial_writeln((char*) sd_card_info.product);
-  usb_serial_write_P(PSTR("rev:    ")); hexprint(&sd_card_info.revision,1);
-  usb_serial_write_P(PSTR("serial: 0x")); hexprint((uint8_t*)(&sd_card_info.serial),1);
-  /*
-  usb_serial_write_P(PSTR("date:   ")); uart_putw_dec(sd_card_info.manufacturing_month); uart_putc('/');
-                                 uart_putw_dec(sd_card_info.manufacturing_year); uart_putc('\n');
-  usb_serial_write_P(PSTR("size:   ")); uart_putdw_dec(sd_card_info.capacity / 1024 / 1024); uart_puts_p(PSTR("MB\n"));
-  usb_serial_write_P(PSTR("copy:   ")); uart_putw_dec(sd_card_info.flag_copy); uart_putc('\n');
-  usb_serial_write_P(PSTR("wr.pr.: ")); uart_putw_dec(sd_card_info.flag_write_protect_temp); uart_putc('/');
-                                 uart_putw_dec(sd_card_info.flag_write_protect); uart_putc('\n');
-                                 */
+  usb_serial_write_P(PSTR("manuf:    0x")); hexprint(&sd_card_info.manufacturer,1);
+  usb_serial_write_P(PSTR("oem:      ")); usb_serial_writeln((char*) sd_card_info.oem);
+  usb_serial_write_P(PSTR("product:  ")); usb_serial_writeln((char*) sd_card_info.product);
+  usb_serial_write_P(PSTR("revis:    ")); hexprint(&sd_card_info.revision,1);
+  usb_serial_write_P(PSTR("serial:   0x")); hexprint((uint8_t*)(&sd_card_info.serial),1);
+  usb_serial_write_P(PSTR("date mfd: ")); usb_serial_write_dec8(sd_card_info.manufacturing_month);
+                                          usb_serial_putchar('/');
+                                          usb_serial_writeln_dec8(sd_card_info.manufacturing_year);
+  usb_serial_write_P(PSTR("size:     ")); usb_serial_write_dec32(sd_card_info.capacity / 1024 / 1024);
+                                          usb_serial_writeln_P(PSTR("MB"));
+  usb_serial_write_P(PSTR("content:  ")); (sd_card_info.flag_copy ?
+                                           usb_serial_writeln_P(PSTR("original")) :
+                                           usb_serial_writeln_P(PSTR("copy")));
+  usb_serial_write_P(PSTR("writable: ")); (sd_card_info.flag_write_protect ?
+                                           usb_serial_write_P(PSTR("no")) :
+                                           usb_serial_write_P(PSTR("yes")) );
+  usb_serial_write_P(PSTR(" temp: ")); (sd_card_info.flag_write_protect_temp ?
+                                        usb_serial_writeln_P(PSTR("no")) :
+                                        usb_serial_writeln_P(PSTR("yes")) );
 }
 #endif
