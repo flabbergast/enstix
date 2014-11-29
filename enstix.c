@@ -11,7 +11,7 @@
 #include "crypto/crypto.h"
 #include "crypto/sha256.h"
 
-#include "SDlib/sd_raw.h"
+#include "sd_raw/sd_raw.h"
 
 #include "apipage.h"
 
@@ -285,7 +285,7 @@ int main(void)
               disk_read_only = true;
 #if defined(USE_SDCARD)
               if(sd_exists) {
-                disk_size = (uint32_t)(sd_card_info.capacity / 512);
+                disk_size = (uint32_t)(sd_card_info.capacity / SD_BLOCK_SIZE);
               }
 #endif
               USB_Disable();
@@ -325,8 +325,7 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[DISK_BLOCK_SIZE], const 
 
 #if defined(USE_SDCARD)
   if(sd_exists) {
-    uint64_t offset = sectorNumber * DISK_BLOCK_SIZE;
-    sd_raw_read(offset, out_sectordata, DISK_BLOCK_SIZE);
+    sd_raw_read_block(sectorNumber, out_sectordata);
   } else {
     return 0;
   }
@@ -360,8 +359,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[DISK_BLOCK_SIZE], const 
 
 #if defined(USE_SDCARD)
   if(sd_exists) {
-    uint64_t offset = sectorNumber * DISK_BLOCK_SIZE;
-    sd_raw_write(offset, in_sectordata, DISK_BLOCK_SIZE);
+    sd_raw_write_block(sectorNumber, in_sectordata);
   }
 #else
   #if (defined(__AVR_ATxmega128A3U__)) // this can only happen on x128a3u
@@ -374,7 +372,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[DISK_BLOCK_SIZE], const 
   // check that we're not going into the bootloader area
   if(write_to_page+MEM_PAGES_PER_DISK_BLOCK <= PROGMEM_PAGECOUNT-__reportBLSpagesize())
     for(uint8_t i=0; i<MEM_PAGES_PER_DISK_BLOCK; i++)
-      flash_writepage(in_sectordata+(MEM_PAGES_PER_DISK_BLOCK*i), write_to_page+i);
+      flash_writepage(in_sectordata+(BOOT_SECTION_PAGE_SIZE*i), write_to_page+i);
   #else
   return 0;
   #endif

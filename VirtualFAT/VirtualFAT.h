@@ -52,10 +52,10 @@
     #define SECTOR_PER_CLUSTER        4
 
     /** Size of a single logical sector on the disk. */
-    #define SECTOR_SIZE_BYTES         512
+    #define VIRTUALFAT_SECTOR_SIZE_BYTES         DISK_BLOCK_SIZE
 
     /** Size of a logical cluster on the disk, in bytes */
-    #define CLUSTER_SIZE_BYTES        (SECTOR_PER_CLUSTER * SECTOR_SIZE_BYTES)
+    #define CLUSTER_SIZE_BYTES        (SECTOR_PER_CLUSTER * VIRTUALFAT_SECTOR_SIZE_BYTES)
 
     /** Number of sectors required to store a given size in bytes.
      *
@@ -63,7 +63,7 @@
      *
      *  \return Number of sectors required to store the given data on the disk.
      */
-    #define FILE_SECTORS(size)        ((size / SECTOR_SIZE_BYTES)  + ((size % SECTOR_SIZE_BYTES)  ? 1 : 0))
+    #define FILE_SECTORS(size)        ((size / VIRTUALFAT_SECTOR_SIZE_BYTES)  + ((size % VIRTUALFAT_SECTOR_SIZE_BYTES)  ? 1 : 0))
 
     /** Number of clusters required to store a given size in bytes.
      *

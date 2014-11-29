@@ -182,8 +182,8 @@ you actually need to write some data to it).
 The encrypted disk image is encrypted with aes128-cbc-essiv (probably
 not directly compatible with other existing programs using this scheme).
 So there is one main AES128 key. This one is used to encrypt each sector
-(512 bytes) with CBC, where the IV is derived from the key and the
-sector number as described by the ESSIV scheme.
+(usually 512 bytes) with CBC, where the IV is derived from the key and
+the sector number as described by the ESSIV scheme.
 
 What is stored in xmega's EEPROM is the main AES128 key encrypted with
 AES (the key for this is the first 16 bytes of the SHA256 hash of the

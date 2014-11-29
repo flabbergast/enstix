@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+BLOCK_SIZE=512
+
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto import Random
@@ -74,7 +76,7 @@ aes_iv = AES.new(SHA256.new(aes128_key).digest()[0:16], AES.MODE_ECB) # iv = ESS
 outimage = open(args.output_imgfile, "wb")
 with open(args.input_imgfile, "rb") as f:
     while True:
-        chunk = f.read(512)
+        chunk = f.read(BLOCK_SIZE)
         if chunk:
             # encrypt the sector number to get iv (the ESSIV way) (careful with struct.pack: endianness matters!)
             iv = aes_iv.encrypt(struct.pack('l', sect_num).ljust(16, '\x00'))

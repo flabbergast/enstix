@@ -21,13 +21,12 @@ F_USB        = 48000000
 #MCU          = atmega32u4
 #ARCH         = AVR8
 #BOARD        = OLIMEX32U4
-##F_CPU        = 16000000
-#F_CPU        = 8000000
+#F_CPU        = 16000000
 #F_USB        = $(F_CPU)
 OPTIMIZATION = s
 TARGET       = enstix
 # $(shell find "crypto/avr-crypto-lib/aes" -name "*.c" -o -name "*.S") $(shell find "crypto/avr-crypto-lib/bcal/" -name "bcal_aes*.c" -o -name "bcal-basic.c" -o -name "bcal-cbc.c" -o -name "*.S") $(shell find "crypto/avr-crypto-lib/memxor" -name "*.c" -o -name "*.S")
-SRC          = $(TARGET).c LufaLayer.c Descriptors.c Timer.c SerialHelpers.c SCSI/SCSI.c SDlib/sd_raw.c VirtualFAT/VirtualFAT.c $(shell find "crypto" -maxdepth 1 -name "*.c" -o -name "*.S") $(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)
+SRC          = $(TARGET).c LufaLayer.c Descriptors.c Timer.c SerialHelpers.c SCSI/SCSI.c sd_raw/sd_raw.c VirtualFAT/VirtualFAT.c $(shell find "crypto" -maxdepth 1 -name "*.c" -o -name "*.S") $(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)
 LUFA_PATH    = LUFA
 CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/
 LD_FLAGS     = apipage.a

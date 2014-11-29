@@ -62,11 +62,11 @@ static const FATBootBlock_t BootBlock =
   {
     .Bootstrap               = {0xEB, 0x3C, 0x90},
     .Description             = "mkdosfs",
-    .SectorSize              = SECTOR_SIZE_BYTES,
+    .SectorSize              = VIRTUALFAT_SECTOR_SIZE_BYTES,
     .SectorsPerCluster       = SECTOR_PER_CLUSTER,
     .ReservedSectors         = 1,
     .FATCopies               = 2,
-    .RootDirectoryEntries    = (SECTOR_SIZE_BYTES / sizeof(FATDirectoryEntry_t)),
+    .RootDirectoryEntries    = (VIRTUALFAT_SECTOR_SIZE_BYTES / sizeof(FATDirectoryEntry_t)),
     .TotalSectors16          = VIRTUALFAT_LUN_MEDIA_BLOCKS,
     .MediaDescriptor         = 0xF8,
     .SectorsPerFAT           = 1,
@@ -239,15 +239,15 @@ static void ReadWriteREADMEFileBlock(const uint16_t BlockNumber,
     return;
 
   #if (FLASHEND > 0xFFFF)
-  uint_farptr_t FlashAddress = (uint_farptr_t)readme_contents + (uint_farptr_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
+  uint_farptr_t FlashAddress = (uint_farptr_t)readme_contents + (uint_farptr_t)(BlockNumber - FileStartBlock) * VIRTUALFAT_SECTOR_SIZE_BYTES;
   #else
-  uintptr_t FlashAddress = (uintptr_t)readme_contents + (uintptr_t)(BlockNumber - FileStartBlock) * SECTOR_SIZE_BYTES;
+  uintptr_t FlashAddress = (uintptr_t)readme_contents + (uintptr_t)(BlockNumber - FileStartBlock) * VIRTUALFAT_SECTOR_SIZE_BYTES;
   #endif
 
   if (Read)
   {
     /* Read out the mapped block of data from the device's FLASH */
-    for (uint16_t i = 0; i < SECTOR_SIZE_BYTES; i++)
+    for (uint16_t i = 0; i < VIRTUALFAT_SECTOR_SIZE_BYTES; i++)
     {
       #if (FLASHEND > 0xFFFF)
         BlockBuffer[i] = pgm_read_byte_far(FlashAddress++);
@@ -269,7 +269,7 @@ static void ReadWriteREADMEFileBlock(const uint16_t BlockNumber,
  */
 void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
 {
-  uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
+  uint8_t BlockBuffer[VIRTUALFAT_SECTOR_SIZE_BYTES];
 
   /* Buffer the entire block to be written from the host */
   Endpoint_Read_Stream_LE(BlockBuffer, sizeof(BlockBuffer), NULL);
@@ -304,7 +304,7 @@ void VirtualFAT_WriteBlock(const uint16_t BlockNumber)
  */
 void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
 {
-  uint8_t BlockBuffer[SECTOR_SIZE_BYTES];
+  uint8_t BlockBuffer[VIRTUALFAT_SECTOR_SIZE_BYTES];
   memset(BlockBuffer, 0x00, sizeof(BlockBuffer));
 
   switch (BlockNumber)
@@ -313,8 +313,8 @@ void VirtualFAT_ReadBlock(const uint16_t BlockNumber)
       memcpy(BlockBuffer, &BootBlock, sizeof(FATBootBlock_t));
 
       /* Add the magic signature to the end of the block */
-      BlockBuffer[SECTOR_SIZE_BYTES - 2] = 0x55;
-      BlockBuffer[SECTOR_SIZE_BYTES - 1] = 0xAA;
+      BlockBuffer[VIRTUALFAT_SECTOR_SIZE_BYTES - 2] = 0x55;
+      BlockBuffer[VIRTUALFAT_SECTOR_SIZE_BYTES - 1] = 0xAA;
 
       break;
 

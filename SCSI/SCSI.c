@@ -229,7 +229,7 @@ static bool SCSI_Command_Read_Capacity_10(USB_ClassInfo_MS_Device_t* const MSInt
     Endpoint_Write_32_BE(DISK_BLOCK_SIZE);
   } else {
     Endpoint_Write_32_BE(VIRTUALFAT_LUN_MEDIA_BLOCKS - 1);
-    Endpoint_Write_32_BE(VIRTUALFAT_DISK_BLOCK_SIZE);
+    Endpoint_Write_32_BE(VIRTUALFAT_SECTOR_SIZE_BYTES);
   }
   Endpoint_ClearIN();
 
