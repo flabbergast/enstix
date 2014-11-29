@@ -63,23 +63,23 @@ int main(void)
   uint32_t button_press_length = 0;
 
   // should set the disk size soon
-  disk_size = VIRTUAL_DISK_BLOCKS;
+  disk_size = VIRTUALFAT_DISK_BLOCKS;
 
   bool dtr,prev_dtr = false;
 
   /* disable JTAG on XMEGAs */
-  #if (defined(__AVR_ATxmega128A3U__))
+#if (defined(__AVR_ATxmega128A3U__))
     DISABLE_JTAG;
-  #endif
+#endif
 
   /* Initialisation */
   init();
 
-  #if defined(USE_SDCARD)
+#if defined(USE_SDCARD)
   if( sd_raw_init() && sd_raw_get_info(&sd_card_info) ) {
     sd_exists = 1;
   }
-  #endif
+#endif
 
   /* read the eeprom data into SRAM */
   eeprom_read_block((void*)key, (const void*)aes_key_encrypted, 16); // it's still encrypted at this point
@@ -121,7 +121,7 @@ int main(void)
       switch(usb_serial_getchar()) {
         case 'i': // info
           print_header();
-          #if defined(USE_SDCARD)
+#if defined(USE_SDCARD)
           usb_serial_write_P(PSTR("(Micro)SD status: "));
           if(sd_exists) {
             usb_serial_writeln_P(PSTR("initialised"));
@@ -129,7 +129,7 @@ int main(void)
           } else {
             usb_serial_writeln_P(PSTR("not connected/communicating"));
           }
-          #endif
+#endif
           if(disk_state == DISK_STATE_INITIAL) {
             usb_serial_write_P(PSTR("Encrypted main AES key: "));
             hexprint(key, 16);
@@ -246,14 +246,14 @@ int main(void)
               }
             }
             if(match) { // if the passphrase is correct
-              #if (defined(__AVR_ATxmega128A3U__))
+#if (defined(__AVR_ATxmega128A3U__))
                 // hardware AES decryption needs another key
                 AES_lastsubkey_generate(pp_hash, lastsubkey);
                 aes128_dec_single(lastsubkey, key); // decrypt the aes key
                 AES_lastsubkey_generate(key, lastsubkey);
-              #else
+#else
                 aes128_dec_single(pp_hash, key); // decrypt the aes key
-              #endif
+#endif
               sha256((sha256_hash_t *)key_hash, (const void*)key, 8*16); // remember the hash as well, for ESSIV
               usb_serial_writeln_P(PSTR("Password OK. Switching to encrypted disk mode (everything will disconnect)."));
               usb_serial_write_P(PSTR("Press a key to continue..."));
@@ -262,7 +262,7 @@ int main(void)
               disk_read_only = true;
 #if defined(USE_SDCARD)
               if(sd_exists) {
-                disk_size = (uint32_t)(sd_card_info.capacity / VIRTUAL_DISK_BLOCK_SIZE);
+                disk_size = (uint32_t)(sd_card_info.capacity / DISK_BLOCK_SIZE);
               }
 #endif
               USB_Disable();
@@ -316,63 +316,58 @@ int main(void)
 #ifndef PROGMEM_PAGECOUNT
   #define PROGMEM_PAGECOUNT               (PROGMEM_SIZE/BOOT_SECTION_PAGE_SIZE)
 #endif
-#define MEM_PAGES_PER_DISK_BLOCK          (VIRTUAL_DISK_BLOCK_SIZE/BOOT_SECTION_PAGE_SIZE)
-// this is 1 on atxmega128a3u
+#define MEM_PAGES_PER_DISK_BLOCK          (DISK_BLOCK_SIZE/BOOT_SECTION_PAGE_SIZE)
+// this should be 1 on atxmega128a3u
 
-int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE], const uint32_t sectorNumber) {
-  //memset(&out_sectordata[0], ~(sectorNumber & 0xff), VIRTUAL_DISK_BLOCK_SIZE);
-
+int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[DISK_BLOCK_SIZE], const uint32_t sectorNumber) {
   /* compute iv */
   compute_iv_for_sector(sectorNumber);
 
 #if defined(USE_SDCARD)
   if(sd_exists) {
-    uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
-    sd_raw_read(offset, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    uint64_t offset = sectorNumber * DISK_BLOCK_SIZE;
+    sd_raw_read(offset, out_sectordata, DISK_BLOCK_SIZE);
   } else {
     return 0;
   }
 #else
   #if (defined(__AVR_ATxmega128A3U__))
   /* read the data */
-  memcpy_PF(out_sectordata, (uint_farptr_t)DISK_AREA_BEGIN_BYTE+(uint_farptr_t)(sectorNumber*VIRTUAL_DISK_BLOCK_SIZE), VIRTUAL_DISK_BLOCK_SIZE);
+  memcpy_PF(out_sectordata, (uint_farptr_t)DISK_AREA_BEGIN_BYTE+(uint_farptr_t)(sectorNumber*DISK_BLOCK_SIZE), DISK_BLOCK_SIZE);
   //flash_readpage(out_sectordata, DISK_AREA_BEGIN_PAGE+sectorNumber);
   #else // need to do something else if not on x128a3u
-  memset(&out_sectordata[0], ~(sectorNumber & 0xff), VIRTUAL_DISK_BLOCK_SIZE);
+  memset(&out_sectordata[0], ~(sectorNumber & 0xff), DISK_BLOCK_SIZE);
   #endif
 #endif
 
   /* decrypt */
-  #if (defined(__AVR_ATxmega128A3U__))
+#if (defined(__AVR_ATxmega128A3U__))
     // hardware AES module needs a different key for decryption
-    aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
-  #else
-    aes128_cbc_dec(key, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
-  #endif
+    aes128_cbc_dec(lastsubkey, iv, out_sectordata, DISK_BLOCK_SIZE);
+#else
+    aes128_cbc_dec(key, iv, out_sectordata, DISK_BLOCK_SIZE);
+#endif
 
-  return VIRTUAL_DISK_BLOCK_SIZE;
+  return DISK_BLOCK_SIZE;
 }
 
-int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE], const uint32_t sectorNumber) {
-  #if (defined(__AVR_ATxmega128A3U__))
-  if(__checkmagic()==0) { // do not run the code if not on Stephan Baerwolf's hardware/bootloader
-    return 0;
-  }
-  #endif
-
+int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[DISK_BLOCK_SIZE], const uint32_t sectorNumber) {
   /* compute iv */
   compute_iv_for_sector(sectorNumber);
 
   /* encrypt the data */
-  aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  aes128_cbc_enc(key, iv, in_sectordata, DISK_BLOCK_SIZE);
 
 #if defined(USE_SDCARD)
   if(sd_exists) {
-    uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
-    sd_raw_write(offset, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    uint64_t offset = sectorNumber * DISK_BLOCK_SIZE;
+    sd_raw_write(offset, in_sectordata, DISK_BLOCK_SIZE);
   }
 #else
   #if (defined(__AVR_ATxmega128A3U__)) // this can only happen on x128a3u
+  if(__checkmagic()==0) { // do not run the code if not on Stephan Baerwolf's hardware/bootloader
+    return 0;
+  }
   /* write the data to flash */
   // figure out how many memory pages we need to write
   uint_farptr_t write_to_page = DISK_AREA_BEGIN_PAGE + (sectorNumber * MEM_PAGES_PER_DISK_BLOCK);
@@ -385,7 +380,7 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   #endif
 #endif
 
-  return VIRTUAL_DISK_BLOCK_SIZE;
+  return DISK_BLOCK_SIZE;
 }
 
 /*************************************************************************

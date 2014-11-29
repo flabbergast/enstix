@@ -39,6 +39,10 @@
 #ifndef _APP_CONFIG_H_
 #define _APP_CONFIG_H_
 
+  /** --------------------------------------------------
+      ---------- Main tweakable configuration ----------
+      -------------------------------------------------- */
+
   /** Want to use SD card? Comment out if not (and use flash memory for storage). */
   #define USE_SDCARD
 
@@ -57,28 +61,36 @@ ogram, e.g. puTTY, minicom, picocom or screen).                 \
                                                                 \
                                                                 "
 
+  #define VERSION "1.3"
+
+  /** --------------------------------------------------
+      ----------- Other config (be careful!) -----------
+      -------------------------------------------------- */
+
   #ifndef FORMATTED_DATE
   #define FORMATTED_DATE __DATE__
   #endif
 
-  #define FIRMWARE_VERSION          PSTR(" * enstix v1.21 (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
+  #define FIRMWARE_VERSION          PSTR(" * enstix v"VERSION" (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
 
   #define TOTAL_LUNS                1
 
   /** Total number of bytes of the storage medium. */
+  /** Only matters if using chip's flash for storage */
   #define VIRTUAL_DISK_BYTES                65536
 
   /** Block size of the device. This is kept at 512 to remain compatible with the OS. */
-  #define VIRTUAL_DISK_BLOCK_SIZE           512
+  /** This is used with all the devices (virtualFAT, SD, flash)! */
+  #define DISK_BLOCK_SIZE                   512
 
   /** Where does the disk image in flash begin?
    * WARNING!!! No checking is done! It needs to be further than the firmware code ends!
-   * WARNING!!! BEGIN+SIZE needs to fit into the available flash! */
+   * WARNING!!! BEGIN+SIZE needs to fit into the available flash (i.e. end below bootloader code)! */
   #define DISK_AREA_BEGIN_BYTE              0x6000
 
   /** Compute some extra numbers from Config/AppConfig ones. */
   /** Total number of blocks of the virtual memory for reporting to the host as the device's total capacity. */
-  #define VIRTUAL_DISK_BLOCKS              (VIRTUAL_DISK_BYTES / VIRTUAL_DISK_BLOCK_SIZE)
+  #define VIRTUAL_DISK_BLOCKS              (VIRTUAL_DISK_BYTES / DISK_BLOCK_SIZE)
 
   /** Blocks in each LUN, calculated from the total capacity divided by the total number of Logical Units in the device. */
   #define LUN_MEDIA_BLOCKS                 (VIRTUAL_DISK_BLOCKS / TOTAL_LUNS)

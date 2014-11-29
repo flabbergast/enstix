@@ -226,7 +226,7 @@ static bool SCSI_Command_Read_Capacity_10(USB_ClassInfo_MS_Device_t* const MSInt
 {
   if (disk_state == DISK_STATE_ENCRYPTING) {
     Endpoint_Write_32_BE((disk_size/TOTAL_LUNS) - 1);
-    Endpoint_Write_32_BE(VIRTUAL_DISK_BLOCK_SIZE);
+    Endpoint_Write_32_BE(DISK_BLOCK_SIZE);
   } else {
     Endpoint_Write_32_BE(VIRTUALFAT_LUN_MEDIA_BLOCKS - 1);
     Endpoint_Write_32_BE(VIRTUALFAT_DISK_BLOCK_SIZE);
@@ -290,9 +290,9 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
       if (disk_state == DISK_STATE_INITIAL) {
         VirtualFAT_ReadBlock(BlockAddress + i);
       } else if (disk_state == DISK_STATE_ENCRYPTING) {
-        uint8_t BlockBuffer[VIRTUAL_DISK_BLOCK_SIZE];
+        uint8_t BlockBuffer[DISK_BLOCK_SIZE];
         // get the data
-        //if(VIRTUAL_DISK_BLOCK_SIZE != CALLBACK_disk_readSector(BlockBuffer,BlockAddress+i))
+        //if(DISK_BLOCK_SIZE != CALLBACK_disk_readSector(BlockBuffer,BlockAddress+i))
         //  return false;
         CALLBACK_disk_readSector(BlockBuffer,BlockAddress+i);
         /* Write the entire read block Buffer to the host */
@@ -303,12 +303,12 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
       if (disk_state == DISK_STATE_INITIAL) {
         return false; // should be marked as read_only anyway...
       } else if (disk_state == DISK_STATE_ENCRYPTING) {
-        uint8_t BlockBuffer[VIRTUAL_DISK_BLOCK_SIZE];
+        uint8_t BlockBuffer[DISK_BLOCK_SIZE];
         /* Buffer the entire block to be written from the host */
         Endpoint_Read_Stream_LE(BlockBuffer, sizeof(BlockBuffer), NULL);
         Endpoint_ClearOUT();
         // do something with the data
-        //if(VIRTUAL_DISK_BLOCK_SIZE != CALLBACK_disk_writeSector(BlockBuffer,BlockAddress+i))
+        //if(DISK_BLOCK_SIZE != CALLBACK_disk_writeSector(BlockBuffer,BlockAddress+i))
         //  return false;
         CALLBACK_disk_writeSector(BlockBuffer, BlockAddress+i);
       }
@@ -316,7 +316,7 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
   }
 
   /* Update the bytes transferred counter and succeed the command */
-  MSInterfaceInfo->State.CommandBlock.DataTransferLength -= ((uint32_t)TotalBlocks * VIRTUAL_DISK_BLOCK_SIZE);
+  MSInterfaceInfo->State.CommandBlock.DataTransferLength -= ((uint32_t)TotalBlocks * DISK_BLOCK_SIZE);
 
   return true;
 }

@@ -25,13 +25,14 @@ void Timer_Init(void) {
   // altogether the int fires every 1.024 ms on F_CPU=16MHz and 2.048 ms on F_CPU=8MHz
 }
 
-  #if (F_CPU == 16000000)
-    #define TIMER_HELPER_CONSTANT 10
-  #elif (F_CPU == 8000000)
-    #define TIMER_HELPER_CONSTANT 5
-  #else
-    #error "Unusual F_CPU: you should define some constants in Timer.c."
-  #endif
+#if (F_CPU == 16000000)
+  #define TIMER_HELPER_CONSTANT 10
+#elif (F_CPU == 8000000)
+  #define TIMER_HELPER_CONSTANT 5
+#else
+  #error "Unusual F_CPU: you should define some constants in Timer.c."
+#endif
+
 // TIMER0 overflow interrupt handler
 ISR(TIMER0_OVF_vect) {
   helper_counter++;
