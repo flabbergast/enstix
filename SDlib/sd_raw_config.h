@@ -56,7 +56,7 @@ extern "C"
  * \note When SD_RAW_WRITE_SUPPORT is 1, SD_RAW_SAVE_RAM will
  *       be reset to 0.
  */
-#define SD_RAW_SAVE_RAM 1
+#define SD_RAW_SAVE_RAM 0
 
 /**
  * \ingroup sd_raw_config
@@ -65,7 +65,7 @@ extern "C"
  * Set to 1 to support so-called SDHC memory cards, i.e. SD
  * cards with more than 2 gigabytes of memory.
  */
-#define SD_RAW_SDHC 0
+#define SD_RAW_SDHC 1
 
 /**
  * @}
