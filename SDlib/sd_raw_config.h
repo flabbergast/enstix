@@ -114,6 +114,15 @@ extern "C"
 
     #define select_card() PORTB &= ~(1 << PORTB6)
     #define unselect_card() PORTB |= (1 << PORTB6)
+#elif defined(__AVR_ATxmega128A3U__)
+    #define SPIPORT SPIE
+    #define configure_pin_mosi() PORTE.DIRSET = (1 << 5)
+    #define configure_pin_sck() PORTE.DIRSET = (1 << 7)
+    #define configure_pin_ss() PORTE.DIRSET = (1 << 4)
+    #define configure_pin_miso() PORTE.DIRCLR = (1 << 6)
+
+    #define select_card() PORTE.OUTCLR = (1 << 4)
+    #define unselect_card() PORTE.OUTSET = (1 << 4)
 #else
     #error "no sd/mmc pin mapping available!"
 #endif

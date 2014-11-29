@@ -45,7 +45,9 @@ struct sd_raw_info sd_card_info;
 void hexprint(uint8_t *p, uint16_t length);
 void print_help(void);
 void print_header(void);
+#if defined(USE_SDCARD)
 void print_sd_card_info(void);
+#endif
 void compute_iv_for_sector(uint32_t sectorNumber);
 
 #define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
@@ -258,9 +260,11 @@ int main(void)
               usb_serial_wait_for_key();
               disk_state = DISK_STATE_ENCRYPTING;
               disk_read_only = true;
+#if defined(USE_SDCARD)
               if(sd_exists) {
                 disk_size = (uint32_t)(sd_card_info.capacity / VIRTUAL_DISK_BLOCK_SIZE);
               }
+#endif
               USB_Disable();
               // which to use? _Detach and _Attach; or _Disable and _Init; or _ResetInterface
               // best experience with Disable/Init so far
@@ -279,9 +283,11 @@ int main(void)
           if(disk_state == DISK_STATE_INITIAL) {
               disk_state = DISK_STATE_ENCRYPTING;
               disk_read_only = true;
+#if defined(USE_SDCARD)
               if(sd_exists) {
                 disk_size = (uint32_t)(sd_card_info.capacity / 512);
               }
+#endif
               USB_Disable();
               // which to use? _Detach and _Attach; or _Disable and _Init; or _ResetInterface
               // best experience with Disable/Init so far
@@ -319,23 +325,27 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   /* compute iv */
   compute_iv_for_sector(sectorNumber);
 
+#if defined(USE_SDCARD)
+  if(sd_exists) {
+    uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
+    sd_raw_read(offset, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  } else {
+    return 0;
+  }
+#else
   #if (defined(__AVR_ATxmega128A3U__))
   /* read the data */
   memcpy_PF(out_sectordata, (uint_farptr_t)DISK_AREA_BEGIN_BYTE+(uint_farptr_t)(sectorNumber*VIRTUAL_DISK_BLOCK_SIZE), VIRTUAL_DISK_BLOCK_SIZE);
   //flash_readpage(out_sectordata, DISK_AREA_BEGIN_PAGE+sectorNumber);
   #else // need to do something else if not on x128a3u
-    #if defined(USE_SDCARD)
-    if(sd_exists) {
-      uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
-      sd_raw_read(offset, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
-    }
-    #endif
+  memset(&out_sectordata[0], ~(sectorNumber & 0xff), VIRTUAL_DISK_BLOCK_SIZE);
   #endif
+#endif
 
   /* decrypt */
   #if (defined(__AVR_ATxmega128A3U__))
     // hardware AES module needs a different key for decryption
-    aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+    //aes128_cbc_dec(lastsubkey, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
   #else
     aes128_cbc_dec(key, iv, out_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
   #endif
@@ -354,8 +364,14 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
   compute_iv_for_sector(sectorNumber);
 
   /* encrypt the data */
-  aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  //aes128_cbc_enc(key, iv, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
 
+#if defined(USE_SDCARD)
+  if(sd_exists) {
+    uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
+    sd_raw_write(offset, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
+  }
+#else
   #if (defined(__AVR_ATxmega128A3U__)) // this can only happen on x128a3u
   /* write the data to flash */
   // figure out how many memory pages we need to write
@@ -365,13 +381,9 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[VIRTUAL_DISK_BLOCK_SIZE]
     for(uint8_t i=0; i<MEM_PAGES_PER_DISK_BLOCK; i++)
       flash_writepage(in_sectordata+(MEM_PAGES_PER_DISK_BLOCK*i), write_to_page+i);
   #else
-    #if defined(USE_SDCARD)
-    if(sd_exists) {
-      uint64_t offset = sectorNumber * VIRTUAL_DISK_BLOCK_SIZE;
-      sd_raw_write(offset, in_sectordata, VIRTUAL_DISK_BLOCK_SIZE);
-    }
-    #endif
+  return 0;
   #endif
+#endif
 
   return VIRTUAL_DISK_BLOCK_SIZE;
 }
@@ -408,6 +420,7 @@ void print_header(void) {
   usb_serial_writeln_P(FIRMWARE_VERSION);
 }
 
+#if defined(USE_SDCARD)
 void print_sd_card_info() {
   usb_serial_write_P(PSTR("manuf:  0x")); hexprint(&sd_card_info.manufacturer,1);
   usb_serial_write_P(PSTR("oem:    ")); usb_serial_writeln((char*) sd_card_info.oem);
@@ -423,3 +436,4 @@ void print_sd_card_info() {
                                  uart_putw_dec(sd_card_info.flag_write_protect); uart_putc('\n');
                                  */
 }
+#endif
