@@ -20,6 +20,9 @@
 
 #include <stdint.h>
 
+// for LED indicator of activity (I use LUFA for this)
+#include <LUFA/Drivers/Board/LEDS.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -98,8 +101,8 @@ extern "C"
     #define configure_pin_ss() PORTE.DIRSET = (1 << 4)
     #define configure_pin_miso() PORTE.DIRCLR = (1 << 6)
 
-    #define select_card() PORTE.OUTCLR = (1 << 4)
-    #define unselect_card() PORTE.OUTSET = (1 << 4)
+    #define select_card() PORTE.OUTCLR = (1 << 4); LEDs_TurnOnLEDs(LEDS_LED1)
+    #define unselect_card() PORTE.OUTSET = (1 << 4); LEDs_TurnOffLEDs(LEDS_LED1)
 #else
     #error "no sd/mmc pin mapping available!"
 #endif

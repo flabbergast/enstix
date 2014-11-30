@@ -45,50 +45,47 @@
         #endif
     /* Public Interface - May be used in end-application: */
         /* Macros: */
-            #define LEDS_LED1        (1 << 0)
-            #define LEDS_LED2        (1 << 1)
-            #define LEDS_LED3        (1 << 2)
-            #define LEDS_LED4        (1 << 3)
-            #define LEDS_ALL_LEDS    (LEDS_LED1 | LEDS_LED2 | LEDS_LED3 | LEDS_LED4)
+            #define LEDS_LED1        (1 << 7)
+            #define LEDS_ALL_LEDS    LEDS_LED1
             #define LEDS_NO_LEDS     0
         /* Inline Functions: */
         #if !defined(__DOXYGEN__)
             static inline void LEDs_Init(void)
             {
-                PORTE.DIRSET = LEDS_ALL_LEDS;
-                PORTE.OUTCLR = LEDS_ALL_LEDS;
+                PORTB.DIRSET = LEDS_ALL_LEDS;
+                PORTB.OUTCLR = LEDS_ALL_LEDS;
             }
             static inline void LEDs_Disable(void)
             {
-                PORTE.DIRCLR = LEDS_ALL_LEDS;
-                PORTE.OUTCLR = LEDS_ALL_LEDS;
+                PORTB.DIRCLR = LEDS_ALL_LEDS;
+                PORTB.OUTCLR = LEDS_ALL_LEDS;
             }
             static inline void LEDs_TurnOnLEDs(const uint8_t LEDMask)
             {
-                PORTE.OUTSET = LEDMask & LEDS_ALL_LEDS;
+                PORTB.OUTSET = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_TurnOffLEDs(const uint8_t LEDMask)
             {
-                PORTE.OUTCLR = LEDMask & LEDS_ALL_LEDS;
+                PORTB.OUTCLR = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_SetAllLEDs(const uint8_t LEDMask)
             {
-                PORTE.OUTCLR = LEDS_ALL_LEDS;
-                PORTE.OUTSET = LEDMask & LEDS_ALL_LEDS;
+                PORTB.OUTCLR = LEDS_ALL_LEDS;
+                PORTB.OUTSET = LEDMask & LEDS_ALL_LEDS;
             }
             static inline void LEDs_ChangeLEDs(const uint8_t LEDMask, const uint8_t ActiveMask)
             {
-                PORTE.OUTCLR = (LEDMask & LEDS_ALL_LEDS);
-                PORTE.OUTSET = (ActiveMask & LEDS_ALL_LEDS);
+                PORTB.OUTCLR = (LEDMask & LEDS_ALL_LEDS);
+                PORTB.OUTSET = (ActiveMask & LEDS_ALL_LEDS);
             }
             static inline void LEDs_ToggleLEDs(const uint8_t LEDMask)
             {
-                PORTE.OUTTGL = (LEDMask & LEDS_ALL_LEDS);
+                PORTB.OUTTGL = (LEDMask & LEDS_ALL_LEDS);
             }
             static inline uint8_t LEDs_GetLEDs(void) ATTR_WARN_UNUSED_RESULT;
             static inline uint8_t LEDs_GetLEDs(void)
             {
-                return ((PORTE.OUT & LEDS_ALL_LEDS));
+                return ((PORTB.OUT & LEDS_ALL_LEDS));
             }
         #endif
     /* Disable C linkage for C++ Compilers: */

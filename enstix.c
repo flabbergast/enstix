@@ -360,6 +360,8 @@ int16_t CALLBACK_disk_writeSector(uint8_t in_sectordata[DISK_BLOCK_SIZE], const 
 #if defined(USE_SDCARD)
   if(sd_exists) {
     sd_raw_write_block(sectorNumber, in_sectordata);
+  } else {
+    return 0;
   }
 #else
   #if (defined(__AVR_ATxmega128A3U__)) // this can only happen on x128a3u
