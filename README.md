@@ -51,6 +51,8 @@ page](http://www.fourwalledcubicle.com/files/LUFA/Doc/120730/html/_page__v_i_d_p
   [AVRstick]'s webpage).
 - Software AES implementation (used for e.g. atmega32u4) for AVR comes
   from [AVR-crypto-lib].
+- The (micro)SD code is based on Roland Riegel's
+  [SD-reader](http://www.roland-riegel.de/sd-reader/) code.
 
 ## Compiling / installation
 
@@ -279,6 +281,8 @@ the list of functions that it provides.
 
 ## Roadmap / TODO
 
+- Ramp-up the security a bit by doing repeated hashing (so that rainbow
+  tables are not usable).
 - Figure out and implement another way of entering the passphrase that
   wouldn't require Serial access.
 - Use the AVRstick's button and the Keyboard interface to "one-button
