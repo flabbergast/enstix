@@ -21,7 +21,7 @@
 #include <stdint.h>
 
 // for LED indicator of activity (I use LUFA for this)
-#include <LUFA/Drivers/Board/LEDS.h>
+#include <LUFA/Drivers/Board/LEDs.h>
 
 #ifdef __cplusplus
 extern "C"
