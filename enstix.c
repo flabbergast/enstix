@@ -279,24 +279,6 @@ int main(void)
             usb_serial_writeln_P(PSTR("Already in encrypted disk mode."));
           }
           break;
-        case 'T': // TODO: testing
-          if(disk_state == DISK_STATE_INITIAL) {
-              disk_state = DISK_STATE_ENCRYPTING;
-              disk_read_only = true;
-#if defined(USE_SDCARD)
-              if(sd_exists) {
-                disk_size = (uint32_t)(sd_card_info.capacity / SD_BLOCK_SIZE);
-              }
-#endif
-              USB_Disable();
-              // which to use? _Detach and _Attach; or _Disable and _Init; or _ResetInterface
-              // best experience with Disable/Init so far
-              _delay_ms(1000);
-              USB_Init();
-              _delay_ms(200);
-              usb_serial_flush_input();
-          }
-          break;
         default:
           print_help();
       }
