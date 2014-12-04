@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+HASH_ITERATIONS=1000
+
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto import Random
@@ -40,9 +42,13 @@ if(passphrase != pass_check):
 print("Passphrases match, continuing...")
 
 pp_hash = SHA256.new(passphrase)
-print("SHA256 hash of the passphrase: "+pp_hash.hexdigest())
+for i in range(1,HASH_ITERATIONS):
+    pp_hash = SHA256.new(pp_hash.digest())
+print("SHA256 hash^"+str(HASH_ITERATIONS)+" of the passphrase: "+pp_hash.hexdigest())
 pp_hash_hash = SHA256.new(pp_hash.digest())
-print("SHA256 hash of the hash of the passphrase (saved to EEPROM, used to check if the passphrase is correct: "+pp_hash_hash.hexdigest())
+for i in range(1,HASH_ITERATIONS):
+    pp_hash_hash = SHA256.new(pp_hash_hash.digest())
+print("SHA256^"+str(HASH_ITERATIONS)+" hash of the hash^"+str(HASH_ITERATIONS)+" of the passphrase (saved to EEPROM, used to check if the passphrase is correct: "+pp_hash_hash.hexdigest())
 
 # Use 1st 16 bytes of SHA256 hash of passphrase a key for AES128 used for encrypting the actual key
 aes_hashkey = AES.new(pp_hash.digest()[0:16], AES.MODE_ECB) # only used to encr/decr 1 block, so ECB is appropriate

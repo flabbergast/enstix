@@ -220,16 +220,17 @@ So there is one main AES128 key. This one is used to encrypt each sector
 the sector number as described by the ESSIV scheme.
 
 What is stored in xmega's EEPROM is the main AES128 key encrypted with
-AES (the key for this is the first 16 bytes of the SHA256 hash of the
-passphrase). Another piece of data stored in EEPROM is the SHA256 hash
-of the SHA256 hash of the passphrase (for verifying if the entered
-passphrase is "correct").
+AES (the key for this is the first 16 bytes of the SHA256 hash^1000 of
+the passphrase). Another piece of data stored in EEPROM is the SHA256
+hash^1000 of the SHA256 hash of the passphrase (for verifying if the
+entered passphrase is "correct"). (Hash^1000 means it's repeatedly
+hashed, 1000 times.)
 
 Of course, for the flash-based version, the (encrypted) disk drive image
 can be easily extracted from the stick by putting it into the bootloader
 mode and inspecting the contents of the `FIRMWARE.BIN` file. Likewise,
-the passphrase-encrypted AES key, as well as HASH^2(passphrase) can be
-read from `EEPROM.BIN` file.
+the passphrase-encrypted AES key, as well as HASH^2000(passphrase) can
+be read from `EEPROM.BIN` file.
 
 Finally, while the stick is in operation and in the "encrypted mode",
 the main AES key is stored in chip's SRAM (working memory), as well as
@@ -246,11 +247,11 @@ holes in this scheme.
 
 ## Upgrading firmware / changelog
 
-### Upgrading from older than 1.2
-
-The upgrade to 1.2 breaks previously used disk images, as it changes the
-way the main key is encrypted (and stored in EEPROM). No special upgrade
-instructions are provided (ask me if you need them).
+There have been some changes to the encryption and hashing that break
+disk images (namely to 1.2 and again to 1.4). Since these were very
+early development stages, you'd need to ask me for instructions if you
+happen to need them (it's possible to retain the data with a bit of
+python).
 
 ## Remarks
 
@@ -281,8 +282,6 @@ the list of functions that it provides.
 
 ## Roadmap / TODO
 
-- Ramp-up the security a bit by doing repeated hashing (so that rainbow
-  tables are not usable).
 - Figure out and implement another way of entering the passphrase that
   wouldn't require Serial access.
 - Use the AVRstick's button and the Keyboard interface to "one-button

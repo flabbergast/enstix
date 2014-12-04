@@ -23,6 +23,9 @@
 /*************************************************************************
  * ----------------------- Global variables -----------------------------*
  *************************************************************************/
+
+#define HASH_ITERATIONS 1000
+
 /*  Encryption related: used both in main() and disk read/write callbacks. */
 #define PASSPHRASE_MAX_LEN 100
 char passphrase[PASSPHRASE_MAX_LEN];
@@ -49,6 +52,7 @@ void print_header(void);
 void print_sd_card_info(void);
 #endif
 void compute_iv_for_sector(uint32_t sectorNumber);
+void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash);
 
 #define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
 
@@ -136,9 +140,9 @@ int main(void)
           } else if(disk_state == DISK_STATE_ENCRYPTING) {
             usb_serial_write_P(PSTR("Main AES key: "));
             hexprint(key, 16);
-            usb_serial_write_P(PSTR("Passphrase hash: "));
+            usb_serial_write_P(PSTR("Hashed passphrase: "));
             hexprint(pp_hash, 32);
-            usb_serial_write_P(PSTR("Hash(passphrase hash): "));
+            usb_serial_write_P(PSTR("Hashed hashed passphrase: "));
             hexprint(pp_hash_hash, 32);
             usb_serial_write_P(PSTR("Disk state: "));
             if(disk_read_only) {
@@ -153,8 +157,10 @@ int main(void)
             usb_serial_writeln_P(PSTR("Enter current passphrase:"));
             usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
             // compute hashes
-            sha256((sha256_hash_t *)temp_buf, (const void*)passphrase, 8*strlen(passphrase));
-            sha256((sha256_hash_t *)passphrase, (const void*)temp_buf, 8*32); // re-use the space allocated for the passphrase buffer
+            usb_serial_writeln_P(PSTR("Computing hashes..."));
+            usb_tasks(); // so that the serial message gets through before we start computing...
+            compute_many_hashes((const void*)passphrase, strlen(passphrase), (uint8_t *)temp_buf);
+            compute_many_hashes((const void*)temp_buf, 32, (uint8_t *)passphrase); // reuse passphrase buffer for hash^^
             int compare = memcmp((const void *)passphrase, (const void *)pp_hash_hash, 32);
             memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
             if(compare == 0) {
@@ -166,14 +172,17 @@ int main(void)
               memset(temp_buf, 0xFF, PASSPHRASE_MAX_LEN);
               if(compare == 0) {
                 usb_serial_writeln_P(PSTR("Match. Changing the passphrase."));
-                sha256((sha256_hash_t *)pp_hash, (const void*)passphrase, 8*strlen(passphrase));
+                usb_serial_writeln_P(PSTR("Computing hashes..."));
+                usb_tasks(); // so that the serial message gets through before we start computing...
+                compute_many_hashes((const void*)passphrase, strlen(passphrase), pp_hash);
                 memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN); // wipe the passphrase from memory
-                sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
+                compute_many_hashes((const void*)pp_hash, 32, pp_hash_hash);
                 memcpy(temp_buf, key, 16); // copy the key to a temp buffer for encrypting
                 aes128_enc_single(pp_hash, temp_buf); // encrypt the aes key
                 // save the new pp_hash_hash and encr.aes.key to EEPROM
                 eeprom_write_block((const void*)temp_buf, (void*)aes_key_encrypted, 16);
                 eeprom_write_block((const void*)pp_hash_hash, (void*)passphrase_hash_hash, 32);
+                usb_serial_writeln_P(PSTR("Done."));
               } else {
                 usb_serial_writeln_P(PSTR("The passphrases don't match. Not changing anything."));
               }
@@ -233,8 +242,10 @@ int main(void)
             usb_serial_writeln_P(PSTR("Enter passphrase:"));
             usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
             // compute hashes
-            sha256((sha256_hash_t *)pp_hash, (const void*)passphrase, 8*strlen(passphrase));
-            sha256((sha256_hash_t *)pp_hash_hash, (const void*)pp_hash, 8*32);
+            usb_serial_writeln_P(PSTR("Computing hashes..."));
+            usb_tasks(); // so that the serial message gets through before we start computing...
+            compute_many_hashes((const void*)passphrase, strlen(passphrase), pp_hash);
+            compute_many_hashes((const void*)pp_hash, 32, pp_hash_hash);
             // wipe the passphrase from memory
             memset(passphrase, 0xFF, PASSPHRASE_MAX_LEN);
             // compare the hash of hash of the passphrase with the eeprom
@@ -385,6 +396,23 @@ void print_help(void) {
 
 void print_header(void) {
   usb_serial_writeln_P(FIRMWARE_VERSION);
+}
+
+void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash) {
+  uint8_t temp_hash[32];
+  uint8_t *cur_src;
+  uint8_t *cur_dst;
+  uint8_t *swap_ptr;
+
+  sha256((sha256_hash_t *)hash, source, 8*count);
+  cur_src = hash;
+  cur_dst = temp_hash;
+  for(uint16_t j=1; j<HASH_ITERATIONS; j++) { // going to repeatedly hash
+    sha256((sha256_hash_t *)cur_dst, (const void*)cur_src, 8*32);
+    swap_ptr = cur_src; cur_src = cur_dst; cur_dst = swap_ptr; // switch src/dest (pp_hash vs temp_hash)
+  }
+  if( HASH_ITERATIONS % 2 == 0 )
+    memcpy(hash, temp_hash, 32);
 }
 
 #if defined(USE_SDCARD)

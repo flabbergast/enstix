@@ -61,7 +61,7 @@ ogram, e.g. puTTY, minicom, picocom or screen).                 \
                                                                 \
                                                                 "
 
-  #define VERSION "1.3"
+  #define VERSION "1.4"
 
   /** --------------------------------------------------
       ----------- Other config (be careful!) -----------
