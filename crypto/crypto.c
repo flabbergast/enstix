@@ -14,7 +14,7 @@
 #include <avr/pgmspace.h>
 #include <string.h> // memcpy
 
-#if (defined(__AVR_ATxmega128A3U__)) // use hardware AES accelerator on the xmega for AES128
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__) // use hardware AES accelerator on the xmega for AES128
 
 // Encrypt or decrypt a single 128bit block. data and key are assumed
 //  to be 16 uint8_t's. The mode is directly used to set AES.CTRL register.

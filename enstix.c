@@ -33,7 +33,7 @@ char temp_buf[PASSPHRASE_MAX_LEN];
 uint8_t pp_hash[32];
 uint8_t pp_hash_hash[32];
 uint8_t key[16];
-#if (defined(__AVR_ATxmega128A3U__))
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
 uint8_t lastsubkey[16]; // hardware AES module needs a different key for decryption
 #endif
 uint8_t key_hash[32];
@@ -54,7 +54,17 @@ void print_sd_card_info(void);
 void compute_iv_for_sector(uint32_t sectorNumber);
 void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash);
 
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
 #define DISABLE_JTAG CPU_CCP = CCP_IOREG_gc; MCU.MCUCR = MCU_JTAGD_bm
+void setClockTo32MHz(void);
+void setClockTo32MHz() {
+    CCP = CCP_IOREG_gc;              // disable register security for oscillator update
+    OSC.CTRL = OSC_RC32MEN_bm;       // enable 32MHz oscillator
+    while(!(OSC.STATUS & OSC_RC32MRDY_bm)); // wait for oscillator to be ready
+    CCP = CCP_IOREG_gc;              // disable register security for clock update
+    CLK.CTRL = CLK_SCLKSEL_RC32M_gc; // switch to 32MHz clock
+}
+#endif
 
 /*************************************************************************
  * ------------------------- Main Program -------------------------------*
@@ -72,8 +82,11 @@ int main(void)
   bool dtr,prev_dtr = false;
 
   /* disable JTAG on XMEGAs */
-#if (defined(__AVR_ATxmega128A3U__))
+#if defined(__AVR_ATxmega128A3U__)
     DISABLE_JTAG;
+#endif
+#if defined(__AVR_ATxmega128A4U__)
+    setClockTo32MHz();
 #endif
 
   /* Initialisation */
@@ -257,7 +270,7 @@ int main(void)
               }
             }
             if(match) { // if the passphrase is correct
-#if (defined(__AVR_ATxmega128A3U__))
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
                 // hardware AES decryption needs another key
                 AES_lastsubkey_generate(pp_hash, lastsubkey);
                 aes128_dec_single(lastsubkey, key); // decrypt the aes key
@@ -333,7 +346,7 @@ int16_t CALLBACK_disk_readSector(uint8_t out_sectordata[DISK_BLOCK_SIZE], const 
 #endif
 
   /* decrypt */
-#if (defined(__AVR_ATxmega128A3U__))
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
     // hardware AES module needs a different key for decryption
     aes128_cbc_dec(lastsubkey, iv, out_sectordata, DISK_BLOCK_SIZE);
 #else

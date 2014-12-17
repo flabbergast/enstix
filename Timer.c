@@ -42,7 +42,7 @@ ISR(TIMER0_OVF_vect) {
   }
 }
 
-#elif (defined(__AVR_ATxmega128A3U__)) // use internal RTC oscillator to generate interrupts
+#elif defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__) // use internal RTC oscillator to generate interrupts
 void Timer_Init(void) {
   current_time = 0;
   //############################### Clock für RTC aktivieren

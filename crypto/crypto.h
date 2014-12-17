@@ -27,7 +27,7 @@ bool aes128_enc_single(const uint8_t* key, void* data);
 // key is assumed to be 128bit thus 16 uint8_t's
 bool aes128_dec_single(const uint8_t* key, void* data);
 
-#if (defined(__AVR_ATxmega128A3U__))
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
 // hardware AES module needs a different key for decryption
 // this function computes it from the main key
 bool AES_lastsubkey_generate(uint8_t * key, uint8_t * last_sub_key);
