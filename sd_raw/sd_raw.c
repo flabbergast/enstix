@@ -159,7 +159,7 @@ uint8_t sd_raw_init()
   unselect_card();
 
   /* initialize SPI with lowest frequency; max. 400kHz during identification mode of card */
-#if defined(__AVR_ATxmega128A3U__)
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
   SPIPORT.CTRL = (0 << SPI_CLK2X_bp)       | /* Double speed */
                  (1 << SPI_ENABLE_bp)      | /* SPI enable */
                  (0 << SPI_DORD_bp)        | /* Data Order: MSB first */
@@ -299,7 +299,7 @@ uint8_t sd_raw_init()
   unselect_card();
 
   /* switch to highest SPI frequency possible */
-#if defined(__AVR_ATxmega128A3U__)
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
   SPIPORT.CTRL = (SPIPORT.CTRL & ~SPI_PRESCALER_gm) | SPI_PRESCALER_DIV4_gc | SPI_CLK2X_bm;
 #else
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); /* Clock Frequency: f_OSC / 4 */
@@ -343,7 +343,7 @@ uint8_t sd_raw_locked()
  */
 uint8_t sd_raw_send_and_receive_byte(uint8_t b)
 {
-#if defined(__AVR_ATxmega128A3U__)
+#if defined(__AVR_ATxmega128A3U__) || defined(__AVR_ATxmega128A4U__)
   SPIPORT.DATA = b;
   /* wait for byte to be shifted out */
   while(!(SPIPORT.STATUS & SPI_IF_bm));

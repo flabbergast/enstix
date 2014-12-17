@@ -37,12 +37,6 @@
   this software.
 */
 
-/** \file
- *
- *  Main source file for the VirtualSerialMouse demo. This file contains the main tasks of
- *  the demo and is responsible for the initial application hardware configuration.
- */
-
 #include "LufaLayer.h"
 
 /* Includes: */
@@ -316,7 +310,8 @@ void SetupHardware(void)
   Timer_Init();
 
   // AES module soft reset: put the module into a known state
-#if (defined(__AVR_ATxmega128A3U__))
+#if (ARCH == ARCH_XMEGA)
+
     AES.CTRL = AES_RESET_bm;
 #endif
 }

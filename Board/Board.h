@@ -48,7 +48,7 @@
           #define BOARD_HAS_BUTTONS
 //          #define BOARD_HAS_DATAFLASH
 //          #define BOARD_HAS_JOYSTICK
-//          #define BOARD_HAS_LEDS
+          #define BOARD_HAS_LEDS
     /* Disable C linkage for C++ Compilers: */
         #if defined(__cplusplus)
             }

@@ -12,7 +12,7 @@
 # Run "make help" for target help.
 
 ## --- for matrixstorm's avrstick with atxmega128a3u
-MCU          = atxmega128a3u
+MCU          = atxmega128a4u
 ARCH         = XMEGA
 BOARD        = USER
 F_CPU        = 32000000

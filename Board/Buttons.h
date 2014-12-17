@@ -46,24 +46,30 @@
         #endif
     /* Public Interface - May be used in end-application: */
         /* Macros: */
+#if defined(__AVR_ATxmega128A3U__) // avrstick
             #define BUTTONS_BUTTON1        _BV(7)
+            #define BUTTONS_PORT PORTF
+#elif defined(__AVR_ATxmega128A4U__) // X-A4U board
+            #define BUTTONS_BUTTON1        _BV(0)
+            #define BUTTONS_PORT PORTE
+#endif
         /* Inline Functions: */
         #if !defined(__DOXYGEN__)
             static inline void Buttons_Init(void)
             {
-                PORTF.DIRCLR =  BUTTONS_BUTTON1;
-                PORTF.PIN7CTRL = PORT_OPC_PULLUP_gc;     // pull-up on pin 7
+                BUTTONS_PORT.DIRCLR =  BUTTONS_BUTTON1;
+                BUTTONS_PORT.PIN7CTRL = PORT_OPC_PULLUP_gc;     // pull-up on pin F7
             }
             static inline void Buttons_Disable(void)
             {
-                PORTF.PIN7CTRL = 0;     // don't know what's the default state of pull-up/down?
-                PORTF.DIRCLR = BUTTONS_BUTTON1;
+                BUTTONS_PORT.PIN7CTRL = 0;     // don't know what's the default state of pull-up/down?
+                BUTTONS_PORT.DIRCLR = BUTTONS_BUTTON1;
             }
             static inline uint8_t Buttons_GetStatus(void) ATTR_WARN_UNUSED_RESULT;
             static inline uint8_t Buttons_GetStatus(void)
             {
                 // TODO: Return current button status here, debounced if required
-                return ((PORTF.IN & BUTTONS_BUTTON1) ^ BUTTONS_BUTTON1);
+                return ((BUTTONS_PORT.IN & BUTTONS_BUTTON1) ^ BUTTONS_BUTTON1);
             }
         #endif
     /* Disable C linkage for C++ Compilers: */
