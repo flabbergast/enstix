@@ -107,8 +107,10 @@ extern "C"
     #define SPIPORT SPIC
     #define configure_pin_mosi() PORTC.DIRSET = (1 << 5)
     #define configure_pin_sck() PORTC.DIRSET = (1 << 7)
-    #define configure_pin_ss() PORTB.DIRSET = (1 << 0)
     #define configure_pin_miso() PORTC.DIRCLR = (1 << 6)
+    // need to also set actual /SS pin high, otherwise SPI can hang (/SS input+low will set
+    //   STATUS/InterruptFlag high, so it will look like data transfer didn't finish
+    #define configure_pin_ss() PORTB.DIRSET = (1 << 0); PORTC.DIRSET = (1 << 4); PORTC.OUTSET = (1<<4)
 
     #define select_card() PORTB.OUTCLR = (1 << 0); LEDs_TurnOnLEDs(LEDS_LED1)
     #define unselect_card() PORTB.OUTSET = (1 << 0); LEDs_TurnOffLEDs(LEDS_LED1)
