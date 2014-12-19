@@ -47,19 +47,14 @@
  */
 
   /* Includes: */
-    #include <LUFA/Drivers/Board/LEDs.h>
-    #include <LUFA/Drivers/Board/Buttons.h>
-    #include <LUFA/Drivers/USB/USB.h>
-    #include <LUFA/Platform/Platform.h>
-
     #include "SCSI/SCSI.h"
 
   /* by flabbergast: exported functions to be used in the main program code
    */
-    // basic functions
+    // --- basic functions ---
     void init(void);
     void usb_tasks(void);
-    // usb_serial
+    // --- usb_serial ---
     uint16_t usb_serial_available(void); // number of getchars guaranteed to succeed immediately
     int16_t usb_serial_getchar(void); // negative values mean error in receiving (not connected or no input)
     void usb_serial_flush_input(void);
@@ -72,45 +67,29 @@
     void usb_serial_flush_output(void);
     uint16_t usb_serial_readline(char *buffer, const uint16_t buffer_size, const bool obscure_input); // BLOCKING (takes care of _tasks)
     bool usb_serial_dtr(void);
-    // usb_keyboard
+    // --- usb_keyboard ---
+    #ifdef _INCLUDED_FROM_LUFALAYER_C_
+      #define GLOBALS_EXTERN_LUFALAYER
+    #else
+      #define GLOBALS_EXTERN_LUFALAYER extern
+    #endif
     bool usb_keyboard_press(uint8_t key, uint8_t mod);
-    // buttons, LEDs and such
+    // see  LUFA/Drivers/USB/Class/Common/HIDClassCommon.h for names for keys
+    bool usb_keyboard_write(char* text);
+    // status of keyboard LEDs
+    GLOBALS_EXTERN_LUFALAYER uint8_t volatile usb_keyboard_leds;
+    // delay between keypresses (*10ms)
+    #define USB_KEYBOARD_KEYPRESS_DELAY 4
+    // this can be used to send more complicated keypresses directly
+    GLOBALS_EXTERN_LUFALAYER bool usb_keyboard_send_current_data_GLOBAL;
+    GLOBALS_EXTERN_LUFALAYER uint8_t usb_keyboard_current_keys_GLOBAL[6];
+    GLOBALS_EXTERN_LUFALAYER uint8_t usb_keyboard_current_modifier_GLOBAL;
+    // for sending longer text
+    GLOBALS_EXTERN_LUFALAYER bool usb_keyboard_sending_string_GLOBAL;
+
+    // --- buttons, LEDs and such ---
     uint32_t button_pressed_for(void); // for how long was the button pressed? (in 10/1024 sec; 0 if not pressed)
     void service_button(void); // should be called periodically to update the button state
 
-  /* Macros: */
-    /** LED mask for the library LED driver, to indicate that the USB interface is not ready. */
-    #define LEDMASK_USB_NOTREADY      LEDS_LED1
-
-    /** LED mask for the library LED driver, to indicate that the USB interface is enumerating. */
-    #define LEDMASK_USB_ENUMERATING  (LEDS_LED2 | LEDS_LED3)
-
-    /** LED mask for the library LED driver, to indicate that the USB interface is ready. */
-    #define LEDMASK_USB_READY        (LEDS_LED2 | LEDS_LED4)
-
-    /** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
-    #define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
-
-  /* Function Prototypes: */
-    void SetupHardware(void);
-
-    void EVENT_USB_Device_Connect(void);
-    void EVENT_USB_Device_Disconnect(void);
-    void EVENT_USB_Device_ConfigurationChanged(void);
-    void EVENT_USB_Device_ControlRequest(void);
-    void EVENT_USB_Device_StartOfFrame(void);
-
-    bool CALLBACK_MS_Device_SCSICommandReceived(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
-
-    bool CALLBACK_HID_Device_CreateHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo,
-                                             uint8_t* const ReportID,
-                                             const uint8_t ReportType,
-                                             void* ReportData,
-                                             uint16_t* const ReportSize);
-    void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo,
-                                              const uint8_t ReportID,
-                                              const uint8_t ReportType,
-                                              const void* ReportData,
-                                              const uint16_t ReportSize);
 #endif
 

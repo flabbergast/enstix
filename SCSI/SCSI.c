@@ -43,8 +43,17 @@
  *  which wrap around standard SCSI device commands for controlling the actual storage medium.
  */
 
-#define  INCLUDE_FROM_SCSI_C
+#define  _INCLUDED_FROM_SCSI_C_
 #include "SCSI.h"
+
+#include <avr/io.h>
+#include <avr/pgmspace.h>
+
+#include "../LufaLayer.h"
+#include "../Descriptors.h"
+#include "../VirtualFAT/VirtualFAT.h"
+#include "../Config/AppConfig.h"
+#include "../enstix.h"
 
 /** Structure to hold the SCSI response data to a SCSI INQUIRY command. This gives information about the device's
  *  features and capabilities.
@@ -224,8 +233,8 @@ static bool SCSI_Command_Request_Sense(USB_ClassInfo_MS_Device_t* const MSInterf
  */
 static bool SCSI_Command_Read_Capacity_10(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo)
 {
-  if (disk_state == DISK_STATE_ENCRYPTING) {
-    Endpoint_Write_32_BE((disk_size/TOTAL_LUNS) - 1);
+  if (disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
+    Endpoint_Write_32_BE((disk_size_GLOBAL/TOTAL_LUNS) - 1);
     Endpoint_Write_32_BE(DISK_BLOCK_SIZE);
   } else {
     Endpoint_Write_32_BE(VIRTUALFAT_LUN_MEDIA_BLOCKS - 1);
@@ -255,7 +264,7 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
   uint16_t TotalBlocks;
 
   /* Check if the disk is write protected or not */
-  if ((IsDataRead == DATA_WRITE) && disk_read_only)
+  if ((IsDataRead == DATA_WRITE) && disk_read_only_GLOBAL)
   {
     /* Block address is invalid, update SENSE key and return command fail */
     SCSI_SET_SENSE(SCSI_SENSE_KEY_DATA_PROTECT,
@@ -272,8 +281,8 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
   TotalBlocks  = SwapEndian_16(*(uint16_t*)&MSInterfaceInfo->State.CommandBlock.SCSICommandData[7]);
 
   /* Check if the block address is outside the maximum allowable value for the LUN */
-  if ( (disk_state == DISK_STATE_ENCRYPTING && BlockAddress >= (disk_size / TOTAL_LUNS)) ||
-       (disk_state == DISK_STATE_INITIAL && BlockAddress >= VIRTUALFAT_LUN_MEDIA_BLOCKS) )
+  if ( (disk_state_GLOBAL == DISK_STATE_ENCRYPTING && BlockAddress >= (disk_size_GLOBAL / TOTAL_LUNS)) ||
+       (disk_state_GLOBAL == DISK_STATE_INITIAL && BlockAddress >= VIRTUALFAT_LUN_MEDIA_BLOCKS) )
   {
     /* Block address is invalid, update SENSE key and return command fail */
     SCSI_SET_SENSE(SCSI_SENSE_KEY_ILLEGAL_REQUEST,
@@ -287,9 +296,9 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
   for (uint16_t i = 0; i < TotalBlocks; i++)
   {
     if (IsDataRead == DATA_READ) {
-      if (disk_state == DISK_STATE_INITIAL) {
+      if (disk_state_GLOBAL == DISK_STATE_INITIAL) {
         VirtualFAT_ReadBlock(BlockAddress + i);
-      } else if (disk_state == DISK_STATE_ENCRYPTING) {
+      } else if (disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
         uint8_t BlockBuffer[DISK_BLOCK_SIZE];
         // get the data
         //if(DISK_BLOCK_SIZE != CALLBACK_disk_readSector(BlockBuffer,BlockAddress+i))
@@ -300,9 +309,9 @@ static bool SCSI_Command_ReadWrite_10(USB_ClassInfo_MS_Device_t* const MSInterfa
         Endpoint_ClearIN();
       }
     } else {
-      if (disk_state == DISK_STATE_INITIAL) {
+      if (disk_state_GLOBAL == DISK_STATE_INITIAL) {
         return false; // should be marked as read_only anyway...
-      } else if (disk_state == DISK_STATE_ENCRYPTING) {
+      } else if (disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
         uint8_t BlockBuffer[DISK_BLOCK_SIZE];
         /* Buffer the entire block to be written from the host */
         Endpoint_Read_Stream_LE(BlockBuffer, sizeof(BlockBuffer), NULL);
@@ -333,7 +342,7 @@ static bool SCSI_Command_ModeSense_6(USB_ClassInfo_MS_Device_t* const MSInterfac
   /* Send an empty header response with the Write Protect flag status */
   Endpoint_Write_8(0x00);
   Endpoint_Write_8(0x00);
-  Endpoint_Write_8(disk_read_only ? 0x80 : 0x00);
+  Endpoint_Write_8(disk_read_only_GLOBAL ? 0x80 : 0x00);
   Endpoint_Write_8(0x00);
   Endpoint_ClearIN();
 

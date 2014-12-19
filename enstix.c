@@ -77,7 +77,7 @@ int main(void)
   uint32_t button_press_length = 0;
 
   // should set the disk size soon
-  disk_size = VIRTUALFAT_DISK_BLOCKS;
+  disk_size_GLOBAL = VIRTUALFAT_DISK_BLOCKS;
 
   bool dtr,prev_dtr = false;
 
@@ -147,10 +147,10 @@ int main(void)
             usb_serial_writeln_P(PSTR("not connected/communicating"));
           }
 #endif
-          if(disk_state == DISK_STATE_INITIAL) {
+          if(disk_state_GLOBAL == DISK_STATE_INITIAL) {
             usb_serial_write_P(PSTR("Encrypted main AES key: "));
             hexprint(key, 16);
-          } else if(disk_state == DISK_STATE_ENCRYPTING) {
+          } else if(disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
             usb_serial_write_P(PSTR("Main AES key: "));
             hexprint(key, 16);
             usb_serial_write_P(PSTR("Hashed passphrase: "));
@@ -158,7 +158,7 @@ int main(void)
             usb_serial_write_P(PSTR("Hashed hashed passphrase: "));
             hexprint(pp_hash_hash, 32);
             usb_serial_write_P(PSTR("Disk state: "));
-            if(disk_read_only) {
+            if(disk_read_only_GLOBAL) {
               usb_serial_writeln_P(PSTR("read-only"));
             } else {
               usb_serial_writeln_P(PSTR("writable"));
@@ -166,7 +166,7 @@ int main(void)
           }
           break;
         case 'c': // change the password
-          if(disk_state == DISK_STATE_ENCRYPTING) {
+          if(disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
             usb_serial_writeln_P(PSTR("Enter current passphrase:"));
             usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
             // compute hashes
@@ -207,23 +207,23 @@ int main(void)
           }
           break;
         case 'r': // switch ro/rw
-          if(disk_state == DISK_STATE_ENCRYPTING) {
+          if(disk_state_GLOBAL == DISK_STATE_ENCRYPTING) {
             usb_serial_write_P(PSTR("Disk state: "));
-            if(disk_read_only) {
+            if(disk_read_only_GLOBAL) {
               usb_serial_writeln_P(PSTR("read-only. Switch to writable? [yN]"));
             } else {
               usb_serial_writeln_P(PSTR("writable. Switch to read-only? [Yn]"));
             }
             usb_serial_wait_for_key();
             char c = usb_serial_getchar();
-            if(disk_read_only) {
+            if(disk_read_only_GLOBAL) {
               if(c == 'Y' || c == 'y') {
                 usb_serial_write_P(PSTR("Switching to writable."));
                 usb_serial_writeln_P(PSTR("Everything will disconnect."));
                 usb_serial_write_P(PSTR("Press a key to continue..."));
                 usb_serial_wait_for_key();
                 USB_Disable();
-                disk_read_only = false;
+                disk_read_only_GLOBAL = false;
                 _delay_ms(1000);
                 USB_Init();
                 _delay_ms(200);
@@ -237,7 +237,7 @@ int main(void)
                 usb_serial_write_P(PSTR("Press a key to continue..."));
                 usb_serial_wait_for_key();
                 USB_Disable();
-                disk_read_only = true;
+                disk_read_only_GLOBAL = true;
                 _delay_ms(1000);
                 USB_Init();
                 _delay_ms(200);
@@ -251,7 +251,7 @@ int main(void)
           }
           break;
         case 'p': // enter password
-          if(disk_state == DISK_STATE_INITIAL) {
+          if(disk_state_GLOBAL == DISK_STATE_INITIAL) {
             usb_serial_writeln_P(PSTR("Enter passphrase:"));
             usb_serial_readline(passphrase, PASSPHRASE_MAX_LEN, true);
             // compute hashes
@@ -282,11 +282,11 @@ int main(void)
               usb_serial_writeln_P(PSTR("Password OK. Switching to encrypted disk mode (everything will disconnect)."));
               usb_serial_write_P(PSTR("Press a key to continue..."));
               usb_serial_wait_for_key();
-              disk_state = DISK_STATE_ENCRYPTING;
-              disk_read_only = true;
+              disk_state_GLOBAL = DISK_STATE_ENCRYPTING;
+              disk_read_only_GLOBAL = true;
 #if defined(USE_SDCARD)
               if(sd_exists) {
-                disk_size = (uint32_t)(sd_card_info.capacity / DISK_BLOCK_SIZE);
+                disk_size_GLOBAL = (uint32_t)(sd_card_info.capacity / DISK_BLOCK_SIZE);
               }
 #endif
               USB_Disable();

@@ -44,17 +44,28 @@
 #ifndef _SCSI_H_
 #define _SCSI_H_
 
+    #ifdef _INCLUDED_FROM_SCSI_C_
+      #define GLOBALS_EXTERN_SCSI // nothing
+    #else
+      #define GLOBALS_EXTERN_SCSI extern
+    #endif
+
   /* Includes: */
-    #include <avr/io.h>
-    #include <avr/pgmspace.h>
-
     #include <LUFA/Drivers/USB/USB.h>
-
-    #include "../LufaLayer.h"
-    #include "../Descriptors.h"
-    #include "../VirtualFAT/VirtualFAT.h"
     #include "../Config/AppConfig.h"
-    #include "../enstix.h"
+
+  /* Global variables */
+    // Is the virtual disk read only? Should Detach/Attach the USB device after changing,
+    //   since the OS can still think otherwise
+    GLOBALS_EXTERN_SCSI volatile bool disk_read_only_GLOBAL;
+
+    // Size of the virtual disk to be reported to OS - in BLOCKS!
+    GLOBALS_EXTERN_SCSI volatile uint32_t disk_size_GLOBAL;
+
+    // Initial state or encrypting? (should detach/attach USB after changing)
+    #define DISK_STATE_INITIAL 1
+    #define DISK_STATE_ENCRYPTING 2
+    GLOBALS_EXTERN_SCSI volatile uint8_t disk_state_GLOBAL;
 
   /* Macros: */
     /** Macro to set the current SCSI sense data to the given key, additional sense code and additional sense qualifier. This
@@ -84,7 +95,7 @@
   /* Function Prototypes: */
     bool SCSI_DecodeSCSICommand(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
 
-    #if defined(INCLUDE_FROM_SCSI_C)
+    #if defined(_INCLUDED_FROM_SCSI_C_)
       static bool SCSI_Command_Inquiry(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
       static bool SCSI_Command_Request_Sense(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
       static bool SCSI_Command_Read_Capacity_10(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
