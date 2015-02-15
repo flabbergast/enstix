@@ -2,8 +2,6 @@
 
 ## Compiling / installation
 
-### Compiling / flashing
-
 I'm assuming you have Stephan's [AVRstick] {you can buy it on
 [Tindie](https://www.tindie.com/products/matrixstorm/avr-stick-prototype/)},
 and a PC (preferably running linux or Mac OS X) with a working
@@ -16,7 +14,7 @@ executed in a terminal window.
 1. Get the sources:
 
         git clone https://github.com/flabbergast/enstix.git
-        cd enstix
+        cd enstix/sources
 
 2. Get the [LUFA] library: Download sources from its website (I used the
    140928 release), unpack and copy the `LUFA` folder (it's inside
@@ -41,7 +39,7 @@ executed in a terminal window.
    are `image.bin.out` and `eeprom_contents.c` (where the encrypted
    AES key and passphrase hash^2 are recorded).
 
-        ./scripts/crypto.py
+        ./scripts/encrypt-image.py
 
 5. **(only for microSD-backed storage)** Create a random AES key, encrypt
    it with a passphrase and write the data to (and/or create) the
@@ -57,9 +55,15 @@ executed in a terminal window.
    (LEDs, Buttons) are set up in `Board/*`. Note that if LUFA supports
    your board directly, you can just edit `makefile` and supply
    the appropriate value for the `BOARD` variable (e.g. `OLIMEX32U4`).
+   The `USER` board assumes that if the chip is atxmega128a3u then it's
+   [AVRstick] with a microSD shield and if the chip is atxmega128a4u then
+   it's [X-A4U-stick].
 
-   The defaults are for [AVRstick], with microSD and LED set up as on
-   [this](http://174763.calepin.co/uSD-shield-1.html) shield.
+   Edit the `makefile` to set the correct chip.
+
+   The defaults are for [X-A4U-stick]. For [AVRstick] with microSD and
+   LED set up as on [this](http://174763.calepin.co/uSD-shield-1.html)
+   shield, you only need to change the chip in `makefile`.
 
 7. Compile the firmware (this requires the `eeprom_contents.c` source
    file, that's why we first created the this file (possibly along with
@@ -72,25 +76,42 @@ executed in a terminal window.
 
         ./scripts/attach-img-to-bin.py
 
-9. Convert the generated `.eep` file with EEPROM contents into the
-   binary format used by Stephan's bootloader.
+9. **(only for AVRstick)** Convert the generated `.eep` file with EEPROM
+   contents into the binary format used by Stephan's bootloader.
 
         avr-objcopy -I ihex -O binary enstix.eep EEPROM.BIN
 
-10. Upload the firmware and EEPROM contents onto the AVR stick: Insert
-   the AVR stick with the PROG button pressed (so that it enters the
-   bootloader). It will emulate an USB drive. Mount it somewhere (might
-   be done automatically by your system).
+10. Upload the firmware and EEPROM contents onto the stick
+
+  - **X-A4U-stick** Insert the stick with E0 button pressed (so that it
+    enters the DFU bootloader). On linux, programming is done with
+    [dfu-programmer] utility; on windows you can probably use ATMEL's
+    [FLIP] utility.
+
+        dfu-programmer atxmega128a4u erase
+        dfu-programmer atxmega128a4u flash enstix.hex
+        dfu-programmer atxmega128a4u flash --eeprom enstix.eep
+        dfu-programmer atxmega128a4u reset
+
+    Note that the syntax is for 0.7.0 version of [dfu-programmer].
+
+  - **AVRstick** Insert the AVR stick with the PROG button pressed (so
+    that it enters the bootloader). It will emulate an USB drive. Mount
+    it somewhere (might be done automatically by your system).
 
         cp FIRMWARE.BIN /wherever/the/stick/is/mounted/FIRMWARE.BIN
         cp EEPROM.BIN /wherever/the/stick/is/mounted/EEPROM.BIN
 
+  - **anything else** Flash `enstix.hex` and `enstix.eep` as you would
+    normally program your hardware (usually means use `avrdude`).
+
 11. Reset or reinsert the AVR stick and enjoy.
 
-Note: if you just want to update the firmware, and are happy with the
-current password and the disk image currently burned on the xmega's
-FLASH, it's enough to run `make` to compile the firmware, and copy the
-resulting `enstix.bin` to `FIRMWARE.BIN` file onto the AVR stick in
+Note for [AVRstick] with flash-based storage: if you just want to update
+the firmware, and are happy with the current password and the disk image
+currently burned on the xmega's FLASH, it's enough to run `make` to
+compile the firmware, and copy the resulting `enstix.bin` to
+`FIRMWARE.BIN` file onto the AVR stick in
 bootloader mode. Note that it doesn't matter what passwords
 `eeprom_contents.c` file contains, as long as you don't update the
 EEPROM contents on the AVR stick (i.e. you don't write to `EEPROM.BIN`
@@ -119,3 +140,5 @@ of the code come from LUFA demos, this is licensed by LUFA's license.
 [arduino leonardo]: http://arduino.cc/en/main/arduinoboardleonardo
 [teensy]: https://www.pjrc.com/store/teensy.html
 [x-a4u-stick]: http://174763.calepin.co/x-a4u-stick-2.html
+[dfu-programmer]: https://dfu-programmer.github.io/
+[FLIP]: http://www.atmel.com/tools/flip.aspx

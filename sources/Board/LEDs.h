@@ -47,12 +47,15 @@
         /* Macros: */
 #if defined(__AVR_ATxmega128A3U__) // avrstick
             #define LEDS_LED1        (1 << 0)
+            #define LEDS_ALL_LEDS    (LEDS_LED1)
             #define LEDS_PORT        PORTB
 #elif defined(__AVR_ATxmega128A4U__) // X-A4U board
             #define LEDS_LED1        (1 << 1)
+            #define LEDS_LED2        (1 << 2)
+            #define LEDS_LED3        (1 << 3)
+            #define LEDS_ALL_LEDS    (LEDS_LED1|LEDS_LED2|LEDS_LED3)
             #define LEDS_PORT        PORTE
 #endif
-            #define LEDS_ALL_LEDS    (LEDS_LED1)
             #define LEDS_NO_LEDS     0
         /* Inline Functions: */
         #if !defined(__DOXYGEN__)
