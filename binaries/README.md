@@ -31,7 +31,7 @@ executed in a terminal window.
 
           dfu-programmer atxmega128a4u erase
           dfu-programmer atxmega128a4u flash --eeprom enstix.eep
-          dfu-programmer atxmega128a4u flash enstix-xa4u-{VERSION}.hex
+          dfu-programmer atxmega128a4u flash enstix-x128a4u-{VERSION}.hex
           dfu-programmer atxmega128a4u reset
 
    Note that you'll need to flash the eeprom file every time (even if
