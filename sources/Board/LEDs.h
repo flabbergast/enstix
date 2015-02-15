@@ -1,6 +1,6 @@
 /*
  * LEDs.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Custom LEDs definitions for use with LUFA, for AVR stick.
  *
  *  Based on a template from LUFA library (license below).

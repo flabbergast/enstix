@@ -1,6 +1,6 @@
 /*
  * crypto.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Provide some easy-to-use crypto functions.
  *  Credits:
  *   - the actual heavy lifting is done by avr-crypto-lib

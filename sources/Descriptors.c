@@ -1,6 +1,6 @@
 /*
  * Descriptors.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  USB Descriptors.
  *  Most code comes from a LUFA library Demo (license below).
  */

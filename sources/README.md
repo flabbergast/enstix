@@ -89,8 +89,8 @@ executed in a terminal window.
     [FLIP] utility.
 
         dfu-programmer atxmega128a4u erase
-        dfu-programmer atxmega128a4u flash enstix.hex
         dfu-programmer atxmega128a4u flash --eeprom enstix.eep
+        dfu-programmer atxmega128a4u flash enstix.hex
         dfu-programmer atxmega128a4u reset
 
     Note that the syntax is for 0.7.0 version of [dfu-programmer].

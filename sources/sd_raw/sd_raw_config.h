@@ -1,6 +1,6 @@
 /*
  * sd_raw_config.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Configuration (mainly pins used) for sd_raw.
  *  Code originally by Roland Riegel (license below).
  *  Removed code not needed for this app by flabbergast.

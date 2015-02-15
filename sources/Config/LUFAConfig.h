@@ -1,6 +1,6 @@
 /*
  * LUFAConfig.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  LUFA library defines, for AVR stick.
  *
  *  Based on a template from LUFA library (license below).

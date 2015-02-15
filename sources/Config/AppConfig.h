@@ -1,6 +1,6 @@
 /*
  * AppConfig.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Custom definitions for use with LUFA, for AVR stick.
  *
  *  Based on a template from LUFA library (license below).
@@ -61,7 +61,7 @@ ogram, e.g. puTTY, minicom, picocom or screen).                 \
                                                                 \
                                                                 "
 
-  #define VERSION "1.4"
+  #define VERSION "1.5"
 
   /** --------------------------------------------------
       ----------- Other config (be careful!) -----------
@@ -71,7 +71,7 @@ ogram, e.g. puTTY, minicom, picocom or screen).                 \
   #define FORMATTED_DATE __DATE__
   #endif
 
-  #define FIRMWARE_VERSION          PSTR(" * enstix v"VERSION" (compiled "FORMATTED_DATE")\r\n   (c) 2014 flabbergast")
+  #define FIRMWARE_VERSION          PSTR(" * enstix v"VERSION" (compiled "FORMATTED_DATE")\r\n   (c) 2015 flabbergast")
 
   #define TOTAL_LUNS                1
 

@@ -1,6 +1,6 @@
 /*
  * SerialHelpers.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *
  * Helper functions for printing over usb serial.
  *

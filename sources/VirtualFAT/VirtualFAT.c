@@ -1,6 +1,6 @@
 /*
  * VirtualFAT.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Implements a virtual FAT12 filesystem.
  *
  *  Most of the code comes from a LUFA library Demo (license below).

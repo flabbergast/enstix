@@ -1,6 +1,6 @@
 /*
  * enstix.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  mainly callbacks that should be implemented in the main code, and some
  *  global variables
  */

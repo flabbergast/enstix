@@ -1,6 +1,6 @@
 /*
  * LufaLayer.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  USB and Board layer: provides "easy-to-use" functions for
  *   the main program code.
  *

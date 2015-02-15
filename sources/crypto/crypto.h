@@ -1,6 +1,6 @@
 /*
  * crypto.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Provide some easy-to-use crypto functions: header file.
  */
 

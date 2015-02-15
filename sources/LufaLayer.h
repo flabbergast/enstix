@@ -1,6 +1,6 @@
 /*
  * LufaLayer.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  USB and Board layer: header file.
  *  See below the #includes for a list of functions provided by this
  *    layer.

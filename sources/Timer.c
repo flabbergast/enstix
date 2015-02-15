@@ -1,6 +1,6 @@
 /*
  * Timer.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  implements Arduino-like millis() function via RTC timer interrupt (on XMEGAs)
  *  Note: the XMEGA version counts in 10/1024 secs, so not exactly tens of milliseconds (2.4% error :)
  *  Note: the AVR8 version counts in 10.24 millisecs (wrong the other way than XMEGA :)

@@ -1,6 +1,6 @@
 /*
  * Buttons.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Custom Buttons definitions for use with LUFA, for AVR stick.
  *
  *  Based on a template from LUFA library (license below).

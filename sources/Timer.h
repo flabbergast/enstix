@@ -1,6 +1,6 @@
 /*
  * Timer.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  implements Arduino-like millis() function via RTC timer interrupt (on XMEGAs)
  */
 

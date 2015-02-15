@@ -1,6 +1,6 @@
 /*
  * sd_raw.h
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  Raw read/writing to SD cards (SPI).
  *
  *  Code originally by Roland Riegel (license below).

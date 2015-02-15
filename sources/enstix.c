@@ -1,6 +1,6 @@
 /*
  * enstix.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  main firmware logic
  */
 

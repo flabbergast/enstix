@@ -1,6 +1,6 @@
 /*
  * SCSI.c
- * (c) 2014 flabbergast
+ * (c) 2015 flabbergast
  *  USB layer that acts as a SCSI device.
  *
  *  Most of the code comes from a LUFA library Demo (license below).
