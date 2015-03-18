@@ -43,6 +43,11 @@
       ---------- Main tweakable configuration ----------
       -------------------------------------------------- */
 
+  /** Want to use serial for entering the password or the mass storage method?
+   *  uncomment just one! */
+ // #define SERIAL_PW
+  //#define MASSSTORAGE_PW
+
   /** Want to use SD card? Comment out if not (and use flash memory for storage). */
   #define USE_SDCARD
 

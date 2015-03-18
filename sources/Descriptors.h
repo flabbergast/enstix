@@ -88,6 +88,7 @@
 		{
 			USB_Descriptor_Configuration_Header_t    Config;
 
+#ifdef SERIAL_PW
 			// CDC Control Interface
 			USB_Descriptor_Interface_Association_t   CDC_IAD;
 			USB_Descriptor_Interface_t               CDC_CCI_Interface;
@@ -100,6 +101,7 @@
 			USB_Descriptor_Interface_t               CDC_DCI_Interface;
 			USB_Descriptor_Endpoint_t                CDC_DataOutEndpoint;
 			USB_Descriptor_Endpoint_t                CDC_DataInEndpoint;
+#endif
 
 			// Keyboard HID Interface
 			USB_Descriptor_Interface_t               HID_Interface;
@@ -118,10 +120,12 @@
 		 */
 		enum InterfaceDescriptors_t
 		{
-			INTERFACE_ID_CDC_CCI  = 0, /**< CDC CCI interface descriptor ID */
-			INTERFACE_ID_CDC_DCI  = 1, /**< CDC DCI interface descriptor ID */
-			INTERFACE_ID_Keyboard = 2, /**< Keyboard interface descriptor ID */
-			INTERFACE_ID_MassStorage = 3, /**< Mass storage interface descriptor ID */
+			INTERFACE_ID_Keyboard = 0, /**< Keyboard interface descriptor ID */
+			INTERFACE_ID_MassStorage = 1, /**< Mass storage interface descriptor ID */
+#ifdef SERIAL_PW
+			INTERFACE_ID_CDC_CCI  = 2, /**< CDC CCI interface descriptor ID */
+			INTERFACE_ID_CDC_DCI  = 3, /**< CDC DCI interface descriptor ID */
+#endif
 		};
 
 		/** Enum for the device string descriptor IDs within the device. Each string descriptor should

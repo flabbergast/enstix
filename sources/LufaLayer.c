@@ -58,7 +58,7 @@
 
 #include "SCSI/SCSI.h"
 
-
+#ifdef SERIAL_PW
 /** LUFA CDC Class driver interface configuration and state information. This structure is
  *  passed to all CDC Class driver functions, so that multiple instances of the same class
  *  within a device can be differentiated from one another.
@@ -88,6 +88,7 @@ USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
           },
       },
   };
+#endif
 
 /** Buffer to hold the previously generated Keyboard HID report, for comparison purposes inside the HID class driver. */
 static uint8_t PrevKeyboardHIDReportBuffer[sizeof(USB_KeyboardReport_Data_t)];
@@ -198,7 +199,9 @@ void init(void)
 void usb_tasks(void)
 {
   MS_Device_USBTask(&Disk_MS_Interface);
+#ifdef SERIAL_PW
   CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
+#endif
   HID_Device_USBTask(&Keyboard_HID_Interface);
   USB_USBTask();
 
@@ -206,10 +209,10 @@ void usb_tasks(void)
     usb_keyboard_service_write();
 }
 
+#ifdef SERIAL_PW
 /*
  * ** usb_serial **
  */
-
 uint16_t usb_serial_available(void)
 {
   return CDC_Device_BytesReceived(&VirtualSerial_CDC_Interface);
@@ -328,6 +331,7 @@ uint16_t usb_serial_readline(char *buffer, const uint16_t buffer_size, const boo
 bool usb_serial_dtr(void) {
   return(VirtualSerial_CDC_Interface.State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_OUT_DTR);
 }
+#endif
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
 void SetupHardware(void)
@@ -412,7 +416,9 @@ void EVENT_USB_Device_ConfigurationChanged(void)
   bool ConfigSuccess = true;
 
   ConfigSuccess &= HID_Device_ConfigureEndpoints(&Keyboard_HID_Interface);
+#ifdef SERIAL_PW
   ConfigSuccess &= CDC_Device_ConfigureEndpoints(&VirtualSerial_CDC_Interface);
+#endif
   ConfigSuccess &= MS_Device_ConfigureEndpoints(&Disk_MS_Interface);
 
   USB_Device_EnableSOFEvents();
@@ -423,7 +429,9 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 /** Event handler for the library USB Control Request reception event. */
 void EVENT_USB_Device_ControlRequest(void)
 {
+#ifdef SERIAL_PW
   CDC_Device_ProcessControlRequest(&VirtualSerial_CDC_Interface);
+#endif
   HID_Device_ProcessControlRequest(&Keyboard_HID_Interface);
   MS_Device_ProcessControlRequest(&Disk_MS_Interface);
 }

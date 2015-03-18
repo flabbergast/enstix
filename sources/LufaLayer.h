@@ -54,6 +54,7 @@
     // --- basic functions ---
     void init(void);
     void usb_tasks(void);
+#ifdef SERIAL_PW
     // --- usb_serial ---
     uint16_t usb_serial_available(void); // number of getchars guaranteed to succeed immediately
     int16_t usb_serial_getchar(void); // negative values mean error in receiving (not connected or no input)
@@ -67,6 +68,7 @@
     void usb_serial_flush_output(void);
     uint16_t usb_serial_readline(char *buffer, const uint16_t buffer_size, const bool obscure_input); // BLOCKING (takes care of _tasks)
     bool usb_serial_dtr(void);
+#endif
     // --- usb_keyboard ---
     #ifdef _INCLUDED_FROM_LUFALAYER_C_
       #define GLOBALS_EXTERN_LUFALAYER

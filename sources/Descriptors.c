@@ -98,7 +98,11 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.Header                 = {.Size = sizeof(USB_Descriptor_Configuration_Header_t), .Type = DTYPE_Configuration},
 
 			.TotalConfigurationSize = sizeof(USB_Descriptor_Configuration_t),
+#ifdef SERIAL_PW
 			.TotalInterfaces        = 4,
+#else
+			.TotalInterfaces        = 2,
+#endif
 
 			.ConfigurationNumber    = 1,
 			.ConfigurationStrIndex  = NO_DESCRIPTOR,
@@ -108,6 +112,80 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.MaxPowerConsumption    = USB_CONFIG_POWER_MA(100)
 		},
 
+	.HID_Interface =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
+
+			.InterfaceNumber        = INTERFACE_ID_Keyboard,
+			.AlternateSetting       = 0,
+
+			.TotalEndpoints         = 1,
+
+			.Class                  = HID_CSCP_HIDClass,
+			.SubClass               = HID_CSCP_BootSubclass,
+			.Protocol               = HID_CSCP_KeyboardBootProtocol,
+
+			.InterfaceStrIndex      = NO_DESCRIPTOR
+		},
+
+	.HID_KeyboardHID =
+		{
+			.Header                 = {.Size = sizeof(USB_HID_Descriptor_HID_t), .Type = HID_DTYPE_HID},
+
+			.HIDSpec                = VERSION_BCD(1,1,1),
+			.CountryCode            = 0x00,
+			.TotalReportDescriptors = 1,
+			.HIDReportType          = HID_DTYPE_Report,
+			.HIDReportLength        = sizeof(KeyboardReport)
+		},
+
+	.HID_ReportINEndpoint =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+			.EndpointAddress        = KEYBOARD_EPADDR,
+			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+			.EndpointSize           = KEYBOARD_EPSIZE,
+			.PollingIntervalMS      = 0x05
+		},
+
+	.MS_Interface =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
+
+			.InterfaceNumber        = INTERFACE_ID_MassStorage,
+			.AlternateSetting       = 0,
+
+			.TotalEndpoints         = 2,
+
+			.Class                  = MS_CSCP_MassStorageClass,
+			.SubClass               = MS_CSCP_SCSITransparentSubclass,
+			.Protocol               = MS_CSCP_BulkOnlyTransportProtocol,
+
+			.InterfaceStrIndex      = NO_DESCRIPTOR
+		},
+
+	.MS_DataInEndpoint =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+			.EndpointAddress        = MASS_STORAGE_IN_EPADDR,
+			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
+			.PollingIntervalMS      = 0x05
+		},
+
+	.MS_DataOutEndpoint =
+		{
+			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
+
+			.EndpointAddress        = MASS_STORAGE_OUT_EPADDR,
+			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
+			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
+			.PollingIntervalMS      = 0x05
+		},
+
+#ifdef SERIAL_PW
 	.CDC_IAD =
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_Association_t), .Type = DTYPE_InterfaceAssociation},
@@ -208,79 +286,7 @@ const USB_Descriptor_Configuration_t PROGMEM ConfigurationDescriptor =
 			.EndpointSize           = CDC_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x05
 		},
-
-	.HID_Interface =
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
-
-			.InterfaceNumber        = INTERFACE_ID_Keyboard,
-			.AlternateSetting       = 0,
-
-			.TotalEndpoints         = 1,
-
-			.Class                  = HID_CSCP_HIDClass,
-			.SubClass               = HID_CSCP_BootSubclass,
-			.Protocol               = HID_CSCP_KeyboardBootProtocol,
-
-			.InterfaceStrIndex      = NO_DESCRIPTOR
-		},
-
-	.HID_KeyboardHID =
-		{
-			.Header                 = {.Size = sizeof(USB_HID_Descriptor_HID_t), .Type = HID_DTYPE_HID},
-
-			.HIDSpec                = VERSION_BCD(1,1,1),
-			.CountryCode            = 0x00,
-			.TotalReportDescriptors = 1,
-			.HIDReportType          = HID_DTYPE_Report,
-			.HIDReportLength        = sizeof(KeyboardReport)
-		},
-
-	.HID_ReportINEndpoint =
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
-
-			.EndpointAddress        = KEYBOARD_EPADDR,
-			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = KEYBOARD_EPSIZE,
-			.PollingIntervalMS      = 0x05
-		},
-
-	.MS_Interface =
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Interface_t), .Type = DTYPE_Interface},
-
-			.InterfaceNumber        = INTERFACE_ID_MassStorage,
-			.AlternateSetting       = 0,
-
-			.TotalEndpoints         = 2,
-
-			.Class                  = MS_CSCP_MassStorageClass,
-			.SubClass               = MS_CSCP_SCSITransparentSubclass,
-			.Protocol               = MS_CSCP_BulkOnlyTransportProtocol,
-
-			.InterfaceStrIndex      = NO_DESCRIPTOR
-		},
-
-	.MS_DataInEndpoint =
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
-
-			.EndpointAddress        = MASS_STORAGE_IN_EPADDR,
-			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
-			.PollingIntervalMS      = 0x05
-		},
-
-	.MS_DataOutEndpoint =
-		{
-			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
-
-			.EndpointAddress        = MASS_STORAGE_OUT_EPADDR,
-			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
-			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
-			.PollingIntervalMS      = 0x05
-		},
+#endif
 
 };
 

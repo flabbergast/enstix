@@ -5,7 +5,9 @@
  */
 
 #include "LufaLayer.h"
+#ifdef SERIAL_PW
 #include "SerialHelpers.h"
+#endif
 #include "enstix.h"
 
 #include "crypto/crypto.h"
@@ -46,10 +48,12 @@ struct sd_raw_info sd_card_info;
 /*************************************************************************
  * ----------------------- Helper functions -----------------------------*
  *************************************************************************/
+#ifdef SERIAL_PW
 void print_help(void);
 void print_header(void);
 #if defined(USE_SDCARD)
 void print_sd_card_info(void);
+#endif
 #endif
 void compute_iv_for_sector(uint32_t sectorNumber);
 void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash);
@@ -79,7 +83,9 @@ int main(void)
   // should set the disk size soon
   disk_size_GLOBAL = VIRTUALFAT_DISK_BLOCKS;
 
+#ifdef SERIAL_PW
   bool dtr,prev_dtr = false;
+#endif
 
   /* disable JTAG on XMEGAs */
 #if defined(__AVR_ATxmega128A3U__)
@@ -101,8 +107,10 @@ int main(void)
   /* read the eeprom data into SRAM */
   eeprom_read_block((void*)key, (const void*)aes_key_encrypted, 16); // it's still encrypted at this point
 
+#ifdef SERIAL_PW
   /* Must throw away unused bytes from the host, or it will lock up while waiting for the device */
   usb_serial_flush_input();
+#endif
 
   /* Main loop.*/
   for (;;)
@@ -115,15 +123,18 @@ int main(void)
     if( button_press_length >= 7 && !button_press_registered ) {
       // remember that we've acted on the current button press
       button_press_registered = true;
+#ifdef SERIAL_PW
       // announce the button press over the serial
       usb_serial_writeln_P(PSTR("Button pressed."));
-      //usb_keyboard_press(HID_KEYBOARD_SC_N, HID_KEYBOARD_MODIFIER_LEFTSHIFT);
+#endif
+      usb_keyboard_press(HID_KEYBOARD_SC_N, HID_KEYBOARD_MODIFIER_LEFTSHIFT);
     }
     // was the button released after being pressed?
     if( button_press_registered && button_press_length < 7 ) {
       button_press_registered = false;
     }
 
+#ifdef SERIAL_PW
     // check dtr
     dtr = usb_serial_dtr();
     if( dtr && !prev_dtr ) {
@@ -307,6 +318,7 @@ int main(void)
           print_help();
       }
     }
+#endif
 
     /* need to run this relatively often to keep the USB connection alive */
     usb_tasks();
@@ -403,6 +415,7 @@ void compute_iv_for_sector(uint32_t sectorNumber) {
   aes128_enc_single(key_hash, iv);
 }
 
+#ifdef SERIAL_PW
 void print_help(void) {
   usb_serial_writeln_P(PSTR("-> Help: [i]nfo | [r]o/rw | enter [p]assphrase | [c]hange passphrase"));
 }
@@ -410,6 +423,7 @@ void print_help(void) {
 void print_header(void) {
   usb_serial_writeln_P(FIRMWARE_VERSION);
 }
+#endif
 
 void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash) {
   uint8_t temp_hash[32];
@@ -428,6 +442,7 @@ void compute_many_hashes(const void *source, uint8_t count, uint8_t *hash) {
     memcpy(hash, temp_hash, 32);
 }
 
+#ifdef SERIAL_PW
 #if defined(USE_SDCARD)
 void print_sd_card_info() {
   usb_serial_write_P(PSTR("manuf:    0x")); hexprint(&sd_card_info.manufacturer,1);
@@ -450,4 +465,5 @@ void print_sd_card_info() {
                                         usb_serial_writeln_P(PSTR("no")) :
                                         usb_serial_writeln_P(PSTR("yes")) );
 }
+#endif
 #endif
