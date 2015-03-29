@@ -9,7 +9,7 @@ The whole shebang is about making an **encrypted USB storage**.
 
 The data can be stored on a microSD card (e.g. [X-A4U-stick],
 Stephan Baerwolf's [AVRstick] with a [microSD
-shield](http://174763.calepin.co/uSD-shield-1.html), or [Arduino
+shield](http://flabbergast.github.io/posts/uSD-crypto-shield/), or [Arduino
 Leonardo] or [Teensy] 2.0/++2.0 with a wired SD or microSD socket).
 Alternatively, with Stephan's remarkable MassStorage bootloader on his
 [AVRstick], the data can be stored inside xmega's flash (mind its
@@ -25,6 +25,7 @@ know that it's a standard CDC Serial interface. (Like for Arduino.)
 
 ## Warnings
 
+**(for flash-backed storage)**
 Using atxmega128a3u's flash as a writable USB drive is a **bad idea**,
 since the flash on ATMEL's chips is *not meant to be used like this* and
 has a very limited lifespan compared to usual solid-state storage (on
@@ -214,4 +215,4 @@ license (MIT)](http://www.fourwalledcubicle.com/files/LUFA/Doc/120730/html/_page
 [AVR-crypto-lib]: https://git.cryptolib.org/avr-crypto-lib.git
 [Arduino Leonardo]: http://arduino.cc/en/Main/arduinoBoardLeonardo
 [Teensy]: https://www.pjrc.com/store/teensy.html
-[X-A4U-stick]: http://174763.calepin.co/x-a4u-stick-2.html
+[X-A4U-stick]: http://flabbergast.github.io/x-a4u-r2/

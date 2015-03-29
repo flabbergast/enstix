@@ -62,7 +62,7 @@ executed in a terminal window.
    Edit the `makefile` to set the correct chip.
 
    The defaults are for [X-A4U-stick]. For [AVRstick] with microSD and
-   LED set up as on [this](http://174763.calepin.co/uSD-shield-1.html)
+   LED set up as on [this](http://flabbergast.github.io/posts/uSD-crypto-shield/)
    shield, you only need to change the chip in `makefile`.
 
 7. Compile the firmware (this requires the `eeprom_contents.c` source
@@ -139,6 +139,6 @@ of the code come from LUFA demos, this is licensed by LUFA's license.
 [avr-crypto-lib]: https://git.cryptolib.org/avr-crypto-lib.git
 [arduino leonardo]: http://arduino.cc/en/main/arduinoboardleonardo
 [teensy]: https://www.pjrc.com/store/teensy.html
-[x-a4u-stick]: http://174763.calepin.co/x-a4u-stick-2.html
+[x-a4u-stick]: http://flabbergast.github.io/x-a4u-r2/
 [dfu-programmer]: https://dfu-programmer.github.io/
 [FLIP]: http://www.atmel.com/tools/flip.aspx

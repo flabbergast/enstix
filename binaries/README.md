@@ -46,6 +46,6 @@ That's it, enjoy!
 [AVR-crypto-lib]: https://git.cryptolib.org/avr-crypto-lib.git
 [Arduino Leonardo]: http://arduino.cc/en/Main/arduinoBoardLeonardo
 [Teensy]: https://www.pjrc.com/store/teensy.html
-[X-A4U-stick]: http://174763.calepin.co/x-a4u-stick-2.html
+[X-A4U-stick]: http://flabbergast.github.io/x-a4u-r2/
 [FLIP]: http://www.atmel.com/tools/flip.aspx
 [dfu-programmer]: https://dfu-programmer.github.io/
